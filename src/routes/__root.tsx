@@ -1,7 +1,10 @@
-import { lazy, Suspense } from 'react'
-import { createRootRouteWithContext, Link, Outlet } from '@tanstack/react-router'
+import { lazy, Suspense, useEffect } from 'react'
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
+import { MobileTabBar } from '@/components/layout/mobile-tab-bar'
 import { NotFound } from '@/components/layout/not-found'
+import { SiteFooter } from '@/components/layout/site-footer'
+import { SiteHeader } from '@/components/layout/site-header'
 
 type RouterContext = { queryClient: QueryClient }
 
@@ -13,21 +16,25 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 })
 
 function RootLayout() {
+  // Sinal para testes E2E: mocks ativos e árvore React montada (render é assíncrono).
+  useEffect(() => {
+    document.documentElement.dataset.appReady = 'true'
+  }, [])
+
   return (
     <>
-      <header className="border-b">
-        <nav className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-4">
-          <Link to="/" className="font-bold">
-            NFT Marketplace
-          </Link>
-          <Link to="/" className="text-sm text-muted-foreground [&.active]:text-primary">
-            Início
-          </Link>
-        </nav>
-      </header>
-      <main className="mx-auto max-w-5xl px-4">
+      <a
+        href="#conteudo"
+        className="sr-only z-50 rounded-md bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
+      >
+        Pular para o conteúdo
+      </a>
+      <SiteHeader />
+      <main id="conteudo" tabIndex={-1} className="outline-none">
         <Outlet />
       </main>
+      <SiteFooter />
+      <MobileTabBar />
       <Suspense>
         <Devtools />
       </Suspense>

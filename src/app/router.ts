@@ -17,4 +17,8 @@ declare module '@tanstack/react-router' {
   interface Register {
     router: ReturnType<typeof createAppRouter>
   }
+  interface StaticDataRouteOption {
+    /** Telas com barra de ação própria no mobile (detalhe, carrinho, checkout). */
+    hideMobileTabBar?: boolean
+  }
 }

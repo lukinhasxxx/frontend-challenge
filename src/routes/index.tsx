@@ -14,8 +14,8 @@ function HomePage() {
   const session = useQuery(sessionQueryOptions)
 
   return (
-    <section className="flex flex-col gap-6 py-10">
-      <h1 className="text-3xl font-bold">Diagnóstico (temporário)</h1>
+    <section className="container flex flex-col gap-6 py-10">
+      <h1 className="text-h1">Diagnóstico (temporário)</h1>
 
       <div className="rounded-lg border bg-card p-4">
         <h2 className="mb-2 font-semibold">API (MSW)</h2>

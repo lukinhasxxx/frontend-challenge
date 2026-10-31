@@ -15,8 +15,6 @@ async function bootstrap() {
   }
   const { renderApp } = await import('@/app/render')
   renderApp(document.getElementById('root')!)
-  // Sinal para testes E2E: mocks ativos e app montado.
-  document.documentElement.dataset.appReady = 'true'
 }
 
 void bootstrap()
