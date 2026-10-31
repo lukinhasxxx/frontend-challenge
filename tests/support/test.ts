@@ -1,4 +1,4 @@
-import { test as base, expect } from '@playwright/test'
+import { test as base, expect, type Page } from '@playwright/test'
 
 type Fixtures = {
   /** Cenário do MSW aplicado antes do app carregar (localStorage `MOCK_SCENARIO`). */
@@ -18,5 +18,14 @@ export const test = base.extend<Fixtures>({
     await use(page)
   },
 })
+
+/**
+ * Navega e espera o boot terminar. O `load` do navegador dispara antes do
+ * service worker do MSW estar ativo; requisições nesse intervalo não seriam mockadas.
+ */
+export async function gotoApp(page: Page, path = '/') {
+  await page.goto(path)
+  await page.locator('html[data-app-ready="true"]').waitFor({ state: 'attached' })
+}
 
 export { expect }
