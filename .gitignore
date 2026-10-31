@@ -1,0 +1,15 @@
+node_modules
+dist
+*.local
+.env.local
+playwright-report
+test-results
+reports/lighthouse/*.json
+.DS_Store
+.tanstack
+
+# Planejamento e IA (locais, fora do repositório)
+CLAUDE.md
+SPEC.md
+PROGRESS.md
+.claude/
