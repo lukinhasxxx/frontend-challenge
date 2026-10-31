@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import {
   addEth,
   compareEth,
+  displayEth,
   formatEth,
   fromWei,
   multiplyEth,
@@ -46,7 +47,12 @@ test('compara e formata', () => {
   expect(compareEth('0.1', '0.1000')).toBe(0)
   expect(compareEth('0.2', '0.1')).toBe(1)
   expect(compareEth('0.0999', '0.1')).toBe(-1)
-  expect(formatEth('0.45')).toBe('0.4500 ETH')
+  expect(formatEth('0.45')).toBe('0.45 ETH')
+  expect(displayEth('1.1900')).toBe('1.19')
+  expect(displayEth('0.0160')).toBe('0.016')
+  expect(displayEth('8.9360')).toBe('8.936')
+  expect(displayEth('2')).toBe('2.00')
+  expect(displayEth('0.00004')).toBe('0.00')
 })
 
 test('rejeita formatos inválidos', () => {

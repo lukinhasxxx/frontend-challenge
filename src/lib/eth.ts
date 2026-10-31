@@ -68,6 +68,12 @@ export function compareEth(a: string, b: string): -1 | 0 | 1 {
   return diff === 0n ? 0 : diff > 0n ? 1 : -1
 }
 
+/** Valor para exibição: até 4 casas, sem zeros à direita, mínimo 2 (ex.: "1.19", "0.016"). */
+export function displayEth(eth: string): string {
+  const [integer, fraction = ''] = normalizeEth(eth).split('.')
+  return `${integer}.${fraction.replace(/0+$/, '').padEnd(2, '0')}`
+}
+
 export function formatEth(eth: string): string {
-  return `${normalizeEth(eth)} ETH`
+  return `${displayEth(eth)} ETH`
 }
