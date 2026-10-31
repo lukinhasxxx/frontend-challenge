@@ -1,84 +1,62 @@
 import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
+import type { NftUpdatedEvent } from '@/api/contracts'
 import { getSocket } from './socket'
 
-type Tick = { seq: number; at: string }
-
-/** Painel temporário do spike 0.4 — removido quando o realtime real entrar (3.5). */
+/**
+ * Painel temporário de diagnóstico do socket — substituído pela sincronização
+ * real com o cache do TanStack Query na etapa 3.5.
+ */
 export function RealtimeSpikePanel() {
   const [connected, setConnected] = useState(false)
-  const [lastTick, setLastTick] = useState<Tick | null>(null)
-  const [lastEcho, setLastEcho] = useState<unknown>(null)
+  const [received, setReceived] = useState(0)
+  const [lastEvent, setLastEvent] = useState<NftUpdatedEvent | null>(null)
 
   useEffect(() => {
     const socket = getSocket()
     if (import.meta.env.DEV) Object.assign(window, { __socket: socket })
 
-    const onConnect = () => {
-      console.info('[socket] connected', socket.id)
-      setConnected(true)
-    }
+    const onConnect = () => setConnected(true)
     const onDisconnect = (reason: string) => {
       console.info('[socket] disconnected:', reason)
       setConnected(false)
     }
-    const onTick = (tick: Tick) => {
-      console.info('[socket] spike:tick', tick)
-      setLastTick(tick)
-    }
-    const onEcho = (payload: unknown) => {
-      console.info('[socket] spike:echo', payload)
-      setLastEcho(payload)
+    const onNftUpdated = (event: NftUpdatedEvent) => {
+      console.info('[socket] nft.updated', event)
+      setReceived((count) => count + 1)
+      setLastEvent(event)
     }
 
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
-    socket.on('spike:tick', onTick)
-    socket.on('spike:echo', onEcho)
+    socket.on('nft.updated', onNftUpdated)
     socket.connect()
 
     return () => {
       socket.off('connect', onConnect)
       socket.off('disconnect', onDisconnect)
-      socket.off('spike:tick', onTick)
-      socket.off('spike:echo', onEcho)
+      socket.off('nft.updated', onNftUpdated)
       socket.disconnect()
     }
   }, [])
 
-  const socket = getSocket()
-
   return (
     <div className="rounded-lg border bg-card p-4">
-      <h2 className="mb-2 font-semibold">Socket.IO (spike)</h2>
+      <h2 className="mb-2 font-semibold">Socket.IO</h2>
       <p className="text-sm" role="status">
         Status:{' '}
         <span data-testid="socket-status" className={connected ? 'text-success' : 'text-destructive'}>
           {connected ? 'conectado' : 'desconectado'}
         </span>
       </p>
-      <p className="text-sm text-muted-foreground">
-        Último tick: {lastTick ? `#${lastTick.seq} às ${lastTick.at}` : '—'}
+      <p className="text-sm text-muted-foreground" data-testid="socket-events">
+        Eventos nft.updated recebidos: {received}
       </p>
-      <p className="text-sm text-muted-foreground">
-        Último echo: {lastEcho ? JSON.stringify(lastEcho) : '—'}
-      </p>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Button size="sm" onClick={() => socket.connect()} disabled={connected}>
-          Conectar
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => socket.disconnect()} disabled={!connected}>
-          Desconectar
-        </Button>
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={() => socket.emit('spike:echo', { hello: 'mock' })}
-          disabled={!connected}
-        >
-          Enviar echo
-        </Button>
-      </div>
+      {lastEvent && (
+        <p className="text-sm text-muted-foreground" data-testid="socket-last-event">
+          Último: {lastEvent.payload.name} v{lastEvent.version} — {lastEvent.payload.priceEth} ETH (id{' '}
+          {lastEvent.eventId.slice(0, 8)})
+        </p>
+      )}
     </div>
   )
 }
