@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { sessionQueryOptions } from '@/features/auth/api'
 import { Logo } from './logo'
+import { UnavailableLink } from './unavailable-link'
 
 const navLinkClass =
   'relative pb-6 text-body-lg text-foreground transition-colors hover:text-accent-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-primary after:opacity-0 data-[status=active]:font-bold data-[status=active]:text-accent-foreground data-[status=active]:after:opacity-100'
@@ -30,12 +31,9 @@ export function SiteHeader() {
             <Link to="/" hash="mercado" activeOptions={{ includeHash: true }} className={navLinkClass}>
               Mercado
             </Link>
-            <Link to="/" hash="criadores" activeOptions={{ includeHash: true }} className={navLinkClass}>
-              Criadores
-            </Link>
-            <Link to="/" hash="aprenda" activeOptions={{ includeHash: true }} className={navLinkClass}>
-              Aprenda
-            </Link>
+            {/* Páginas editoriais: fora do escopo (SPEC §3). */}
+            <UnavailableLink className={navLinkClass}>Criadores</UnavailableLink>
+            <UnavailableLink className={navLinkClass}>Aprenda</UnavailableLink>
           </nav>
 
           <div className="flex w-40 items-center justify-end gap-5 lg:w-52 lg:gap-7">

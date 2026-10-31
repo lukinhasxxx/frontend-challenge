@@ -1,6 +1,7 @@
 import type { ComponentType, SVGProps } from 'react'
 import { Link, useMatches, type LinkProps } from '@tanstack/react-router'
-import { Heart, House, ScanSearch, ShoppingCart, UserRound } from 'lucide-react'
+import { Heart, House, ScanLine, ShoppingCart, UserRound } from 'lucide-react'
+import { notifyInDevelopment } from '@/lib/in-development'
 import { cn } from '@/lib/utils'
 
 type Tab = { label: string; icon: ComponentType<SVGProps<SVGSVGElement>> } & Pick<LinkProps, 'to' | 'hash'>
@@ -40,16 +41,17 @@ export function MobileTabBar() {
       <div className="relative mx-auto flex h-[4.75rem] max-w-md items-center justify-between rounded-t-[2rem] bg-card px-6 shadow-sheet">
         {renderTab(home)}
         {renderTab(favorites)}
-        <Link
-          to="/"
-          hash="mercado"
-          aria-label="Buscar NFTs"
+        {/* Botão central do Figma (escanear): fora do escopo. */}
+        <button
+          type="button"
+          aria-label="Escanear NFT (em desenvolvimento)"
+          onClick={() => notifyInDevelopment('Escanear NFT')}
           className={cn(
             'absolute -top-8 left-1/2 flex size-16 -translate-x-1/2 items-center justify-center rounded-full border-[6px] border-background bg-(image:--gradient-cta) text-foreground shadow-button',
           )}
         >
-          <ScanSearch className="size-6" aria-hidden="true" />
-        </Link>
+          <ScanLine className="size-6" aria-hidden="true" />
+        </button>
         <span className="w-12" aria-hidden="true" />
         {renderTab(cart)}
         {renderTab(profile)}

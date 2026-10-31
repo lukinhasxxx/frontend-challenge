@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from '@tanstack/react-router'
-import { toast } from 'sonner'
 import { FacebookIcon, InstagramIcon, LinkedinIcon, TwitterIcon, YoutubeIcon } from '@/components/icons/social'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { notifyInDevelopment } from '@/lib/in-development'
 import { UnavailableLink } from './unavailable-link'
 
 const FEATURES = [
@@ -32,7 +32,7 @@ function Newsletter() {
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
     // Fora do escopo: não simula inscrição bem-sucedida.
-    toast.info('A newsletter ainda não está disponível nesta versão.')
+    notifyInDevelopment('Newsletter')
   }
 
   return (
@@ -64,9 +64,10 @@ function Newsletter() {
   )
 }
 
+/** O Figma mobile não tem footer: só aparece a partir de 768px. */
 export function SiteFooter() {
   return (
-    <footer className="container mt-24 pb-28 md:pb-6">
+    <footer className="container mt-24 hidden pb-6 md:block">
       <div className="flex flex-col">
         <div className="grid gap-8 bg-card p-6 md:grid-cols-2 md:p-8 lg:grid-cols-[1fr_1fr_1fr_1.35fr] lg:gap-0">
           {FEATURES.map((feature) => (
