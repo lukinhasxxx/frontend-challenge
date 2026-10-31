@@ -53,7 +53,7 @@ export function RealtimeSpikePanel() {
       <h2 className="mb-2 font-semibold">Socket.IO (spike)</h2>
       <p className="text-sm" role="status">
         Status:{' '}
-        <span className={connected ? 'text-success' : 'text-destructive'}>
+        <span data-testid="socket-status" className={connected ? 'text-success' : 'text-destructive'}>
           {connected ? 'conectado' : 'desconectado'}
         </span>
       </p>

@@ -18,6 +18,12 @@ export default tseslint.config(
     },
   },
   {
+    // O `use` das fixtures do Playwright não é um hook do React.
+    files: ['tests/**/*.ts', 'playwright.config.ts'],
+    languageOptions: { globals: globals.node },
+    rules: { 'react-hooks/rules-of-hooks': 'off' },
+  },
+  {
     // Rotas exportam `Route` (HMR tratado pelo router-plugin); shadcn exporta variants.
     files: ['src/routes/**/*.tsx', 'src/components/ui/**/*.tsx'],
     rules: { 'react-refresh/only-export-components': 'off' },
