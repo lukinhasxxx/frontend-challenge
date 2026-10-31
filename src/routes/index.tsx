@@ -15,7 +15,13 @@ function HomePage() {
 
   return (
     <section className="container flex flex-col gap-6 py-10">
-      <h1 className="text-h1">Diagnóstico (temporário)</h1>
+      <div className="flex flex-col gap-2">
+        <h1 className="text-h1">Diagnóstico (temporário)</h1>
+        <p className="text-body-sm text-muted-foreground">
+          Página provisória para checar API, sessão e socket. A Home real do Figma substitui esta tela na Fase 3;
+          o header e o footer acima/abaixo já são os definitivos.
+        </p>
+      </div>
 
       <div className="rounded-lg border bg-card p-4">
         <h2 className="mb-2 font-semibold">API (MSW)</h2>
