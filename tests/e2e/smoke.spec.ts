@@ -1,10 +1,10 @@
 import { test, expect, gotoApp } from '../support/test'
+import { waitForRealtime } from '../support/mock'
 
-test('carrega o app com API e Socket.IO simulados', async ({ page }) => {
+test('carrega a Home com catálogo e Socket.IO simulados', async ({ page }) => {
   await gotoApp(page)
-
-  await expect(page.getByText('GET /api/health → ok')).toBeVisible()
-  await expect(page.getByTestId('socket-status')).toHaveText('conectado')
+  await expect(page.getByRole('article').filter({ hasText: 'Emerald Ape #042' })).toBeVisible()
+  await waitForRealtime(page)
 })
 
 test('rota inexistente mostra a página 404', async ({ page }) => {

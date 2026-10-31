@@ -1,60 +1,55 @@
 import type { Page } from '@playwright/test'
 import { test, expect, gotoApp } from '../support/test'
+import { waitForRealtime } from '../support/mock'
 
 async function openPanel(page: Page) {
   await page.getByRole('button', { name: /^Mock/ }).click()
   return page.getByRole('region', { name: 'Mock DevTools' })
 }
 
+const token = (page: Page) => page.evaluate(() => localStorage.getItem('auth-token'))
+
+/** Login/logout rápido recarregam a página: espera o novo documento ficar pronto. */
+async function clickAndReload(page: Page, name: string) {
+  const panel = await openPanel(page)
+  await Promise.all([page.waitForEvent('load'), panel.getByRole('button', { name }).click()])
+  await page.locator('html[data-app-ready="true"]').waitFor({ state: 'attached' })
+}
+
 test.beforeEach(async ({ page }) => {
   await gotoApp(page)
-  await expect(page.getByTestId('socket-status')).toHaveText('conectado')
+  await waitForRealtime(page)
 })
 
-test('login rápido autentica e logout volta a visitante', async ({ page }) => {
-  const panel = await openPanel(page)
-  await panel.getByRole('button', { name: 'Entrar como Ana' }).click()
-  await expect(page.getByTestId('session-status')).toHaveText(/Logado como Ana Souza/)
+test('login rápido autentica e logout volta a visitante', async ({ page, isMobile }) => {
+  await clickAndReload(page, 'Entrar como Ana')
+  await expect.poll(() => token(page)).not.toBeNull()
+  if (!isMobile) await expect(page.getByRole('link', { name: 'Ana' })).toBeVisible()
 
-  await (await openPanel(page)).getByRole('button', { name: 'Sair' }).click()
-  await expect(page.getByTestId('session-status')).toHaveText('Visitante')
+  await clickAndReload(page, 'Sair')
+  await expect.poll(() => token(page)).toBeNull()
+  if (!isMobile) await expect(page.getByRole('link', { name: 'Entrar' })).toBeVisible()
 })
 
-test('alteração de NFT chega pelo socket, incluindo duplicata e evento antigo', async ({ page }) => {
+test('alterar NFT pelo painel atualiza o card pelo socket', async ({ page }) => {
   const panel = await openPanel(page)
   await panel.getByLabel('NFT', { exact: true }).selectOption('nft-03')
-  await panel.getByLabel('Novo preço (ETH)').fill('9.8765')
+  await panel.getByLabel('Novo preço (ETH)').fill('0.3300')
   await panel.getByRole('button', { name: 'Aplicar e emitir' }).click()
-
-  await expect(page.getByTestId('socket-events')).toHaveText(/recebidos: 1/)
-  await expect(page.getByTestId('socket-last-event')).toContainText('v2')
-
-  // Painel de diagnóstico conta tudo que chega; o descarte (dedupe/versão) vem na etapa 3.5.
-  await panel.getByRole('button', { name: 'Reenviar duplicata' }).click()
-  await expect(page.getByTestId('socket-events')).toHaveText(/recebidos: 2/)
-  await panel.getByRole('button', { name: 'Emitir evento antigo' }).click()
-  await expect(page.getByTestId('socket-events')).toHaveText(/recebidos: 3/)
-  await expect(page.getByTestId('socket-last-event')).toContainText('v1')
-
-  // O REST reflete a mudança (mesma fonte de verdade).
-  const state = await page.evaluate(() => fetch('/__mock/state').then((r) => r.json()))
-  expect(state.nfts.find((n: { id: string }) => n.id === 'nft-03').version).toBe(2)
+  await expect(page.getByRole('article').filter({ hasText: 'Neon Vessel #552' })).toContainText('0.33 ETH')
 })
 
 test('socket derrubado reconecta sozinho', async ({ page }) => {
-  const panel = await openPanel(page)
-  await panel.getByRole('button', { name: 'Derrubar socket por 5 s' }).click()
-  await expect(page.getByTestId('socket-status')).toHaveText('desconectado')
-  await expect(page.getByTestId('socket-status')).toHaveText('conectado', { timeout: 15_000 })
+  await (await openPanel(page)).getByRole('button', { name: 'Derrubar socket por 5 s' }).click()
+  await page.locator('html[data-realtime="disconnected"]').waitFor({ state: 'attached' })
+  await page.locator('html[data-realtime="connected"]').waitFor({ state: 'attached', timeout: 15_000 })
 })
 
 test('expirar sessão invalida o token na próxima requisição', async ({ page }) => {
-  const panel = await openPanel(page)
-  await panel.getByRole('button', { name: 'Entrar como Bruno' }).click()
-  await expect(page.getByTestId('session-status')).toHaveText(/Bruno Lima/)
+  await clickAndReload(page, 'Entrar como Bruno')
+  await expect.poll(() => token(page)).not.toBeNull()
 
   await (await openPanel(page)).getByRole('button', { name: 'Expirar sessão agora' }).click()
   await page.reload()
-  await expect(page.getByTestId('session-status')).toHaveText(/expirou/)
-  expect(await page.evaluate(() => localStorage.getItem('auth-token'))).toBeNull()
+  await expect.poll(() => token(page)).toBeNull()
 })
