@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from '@tanstack/react-router'
+import type { NftCategory } from '@/api/contracts'
+import { CATEGORY_LABEL } from '@/features/catalog/labels'
 import { FacebookIcon, InstagramIcon, LinkedinIcon, TwitterIcon, YoutubeIcon } from '@/components/icons/social'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,7 +23,8 @@ const SOCIAL = [
 ]
 
 const HELP_LINKS = ['Central de ajuda', 'Como comprar NFTs', 'Carteira e segurança', 'Política do mercado', 'Denunciar item']
-const COLLECTION_LINKS = ['Arte digital', 'Fotografia', 'Música', 'Arte 3D', 'Utilidade']
+/** Figma: "Arte digital, Fotografia, Música, Arte 3D, Utilidade" — cada link aplica o filtro de categoria. */
+const COLLECTION_LINKS: NftCategory[] = ['digital-art', 'photography', 'music', '3d-art', 'utility']
 
 const columnTitle = 'mb-3 text-h3'
 const columnLink = 'block py-1.5 text-body-sm leading-snug text-foreground hover:text-accent-foreground md:py-0 md:leading-[1.875rem]'
@@ -123,9 +126,9 @@ export function SiteFooter() {
             <h2 id="footer-collections" className={columnTitle}>
               Coleções
             </h2>
-            {COLLECTION_LINKS.map((label) => (
-              <Link key={label} to="/" hash="mercado" className={columnLink}>
-                {label}
+            {COLLECTION_LINKS.map((category) => (
+              <Link key={category} to="/" search={{ category }} hash="mercado" className={columnLink}>
+                {CATEGORY_LABEL[category]}
               </Link>
             ))}
           </nav>
@@ -158,7 +161,7 @@ export function SiteFooter() {
         </div>
 
         {/* Figma usa texto creme sobre o laranja (contraste 2.5); usamos ink (6.85). */}
-        <p className="bg-primary py-1.5 text-center text-body-sm text-primary-foreground">
+        <p className="py-1.5 text-center text-body-sm text-foreground">
           © 2026 Kurio. Propriedade digital para todos.
         </p>
       </div>
