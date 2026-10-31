@@ -94,14 +94,14 @@ export function MockDevtools() {
   }
 
   return (
-    // No mobile fica acima dos botões dos devtools do Router/Query.
-    <div className="fixed bottom-16 left-1/2 z-[9999] -translate-x-1/2 font-sans text-foreground md:bottom-3">
+    // No mobile fica no topo para não cobrir a barra de abas inferior.
+    <div className="fixed top-3 left-1/2 z-[9999] -translate-x-1/2 font-sans text-foreground md:top-auto md:bottom-3">
       {open && (
         <div
           id={panelId}
           role="region"
           aria-label="Mock DevTools"
-          className="absolute bottom-12 left-1/2 max-h-[70vh] w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 space-y-3 overflow-y-auto rounded-xl border bg-card p-4 shadow-2xl"
+          className="absolute top-12 left-1/2 max-h-[70vh] md:top-auto md:bottom-12 w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 space-y-3 overflow-y-auto rounded-xl border bg-card p-4 shadow-2xl"
         >
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Mock DevTools</h2>
