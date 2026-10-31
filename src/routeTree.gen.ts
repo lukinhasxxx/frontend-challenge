@@ -15,6 +15,7 @@ import { Route as FavoritosRouteImport } from './routes/favoritos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as DevUiRouteImport } from './routes/dev.ui'
+import { Route as NftNftIdRouteImport } from './routes/nft.$nftId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const DevUiRoute = DevUiRouteImport.update({
   path: '/dev/ui',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NftNftIdRoute = NftNftIdRouteImport.update({
+  id: '/nft/$nftId',
+  path: '/nft/$nftId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
   '/dev/ui': typeof DevUiRoute
+  '/nft/$nftId': typeof NftNftIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
   '/dev/ui': typeof DevUiRoute
+  '/nft/$nftId': typeof NftNftIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,12 +79,27 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
   '/dev/ui': typeof DevUiRoute
+  '/nft/$nftId': typeof NftNftIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/carrinho' | '/favoritos' | '/login' | '/perfil' | '/dev/ui'
+  fullPaths:
+    | '/'
+    | '/carrinho'
+    | '/favoritos'
+    | '/login'
+    | '/perfil'
+    | '/dev/ui'
+    | '/nft/$nftId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/carrinho' | '/favoritos' | '/login' | '/perfil' | '/dev/ui'
+  to:
+    | '/'
+    | '/carrinho'
+    | '/favoritos'
+    | '/login'
+    | '/perfil'
+    | '/dev/ui'
+    | '/nft/$nftId'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/perfil'
     | '/dev/ui'
+    | '/nft/$nftId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,6 +118,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PerfilRoute: typeof PerfilRoute
   DevUiRoute: typeof DevUiRoute
+  NftNftIdRoute: typeof NftNftIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -140,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevUiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nft/$nftId': {
+      id: '/nft/$nftId'
+      path: '/nft/$nftId'
+      fullPath: '/nft/$nftId'
+      preLoaderRoute: typeof NftNftIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -150,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PerfilRoute: PerfilRoute,
   DevUiRoute: DevUiRoute,
+  NftNftIdRoute: NftNftIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
