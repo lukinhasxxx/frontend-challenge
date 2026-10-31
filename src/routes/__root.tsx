@@ -5,6 +5,7 @@ import { MobileTabBar } from '@/components/layout/mobile-tab-bar'
 import { NotFound } from '@/components/layout/not-found'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { SiteHeader } from '@/components/layout/site-header'
+import { RealtimeSync } from '@/realtime/realtime-sync'
 
 type RouterContext = { queryClient: QueryClient }
 
@@ -35,6 +36,7 @@ function RootLayout() {
       </main>
       <SiteFooter />
       <MobileTabBar />
+      <RealtimeSync />
       <Suspense>
         <Devtools />
       </Suspense>
