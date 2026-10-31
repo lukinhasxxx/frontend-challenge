@@ -46,7 +46,8 @@ function NftCard({ name, image, priceEth, previousPriceEth, tag, action, renderL
           className="aspect-square w-full rounded-xl object-cover transition-transform duration-300 group-hover/card:scale-[1.02] md:rounded-[0.9375rem]"
         />
         {tag && (
-          <Badge variant="tag" className="absolute top-3 left-0 md:top-7">
+          // Só o frame mobile do Figma mostra a etiqueta.
+          <Badge variant="tag" className="absolute top-3 left-0 md:hidden">
             {tag}
           </Badge>
         )}

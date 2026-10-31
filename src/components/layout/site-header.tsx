@@ -1,9 +1,11 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useMatches } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { LogIn, Search, ShoppingCart, UserRound } from 'lucide-react'
+import { LogIn, ShoppingCart, UserRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { sessionQueryOptions } from '@/features/auth/api'
+import { cn } from '@/lib/utils'
+import { HeaderSearch } from './header-search'
 import { Logo } from './logo'
 import { UnavailableLink } from './unavailable-link'
 
@@ -13,13 +15,15 @@ const navLinkClass =
 /** Header desktop/tablet (Figma: linha de 1200px, nav central, ações à direita). */
 export function SiteHeader() {
   const session = useQuery(sessionQueryOptions)
+  // Figma: no detalhe do NFT o item ativo do menu é "Mercado".
+  const onNftDetail = useMatches({ select: (matches) => matches.some((m) => m.routeId === '/nft/$nftId') })
   // Contagem real do carrinho chega na Fase 5.
   const cartCount: number = 0
 
   return (
     <header className="hidden md:block">
-      <div className="container">
-        <div className="flex items-start justify-between border-b border-primary/40 pt-6">
+      <div className="container pt-6">
+        <div className="flex items-start justify-between border-b border-primary/40">
           <div className="w-40 pt-2">
             <Logo />
           </div>
@@ -28,7 +32,13 @@ export function SiteHeader() {
             <Link to="/" activeOptions={{ exact: true, includeHash: true }} className={navLinkClass}>
               Início
             </Link>
-            <Link to="/" hash="mercado" activeOptions={{ includeHash: true }} className={navLinkClass}>
+            <Link
+              to="/"
+              hash="mercado"
+              activeOptions={{ includeHash: true }}
+              aria-current={onNftDetail ? 'page' : undefined}
+              className={cn(navLinkClass, onNftDetail && 'font-bold text-accent-foreground after:opacity-100')}
+            >
               Mercado
             </Link>
             {/* Páginas editoriais: fora do escopo (SPEC §3). */}
@@ -37,9 +47,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex w-40 items-center justify-end gap-5 lg:w-52 lg:gap-7">
-            <Link to="/" hash="mercado" aria-label="Buscar NFTs" className="hover:text-accent-foreground">
-              <Search className="size-5" aria-hidden="true" />
-            </Link>
+            <HeaderSearch />
             <Link
               to="/carrinho"
               aria-label={`Carrinho, ${cartCount} ${cartCount === 1 ? 'item' : 'itens'}`}

@@ -1,53 +1,40 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { sessionQueryOptions } from '@/features/auth/api'
-import { healthQueryOptions } from '@/features/health/api'
-import { RealtimeSpikePanel } from '@/realtime/spike-panel'
+import { featuredNftsQueryOptions, nftListQueryOptions } from '@/features/catalog/api'
+import { CatalogSection } from '@/features/catalog/components/catalog-section'
+import { MobileSearchBar } from '@/features/catalog/components/mobile-search-bar'
+import { CATALOG_SEARCH_DEFAULTS, catalogSearchSchema, toListParams } from '@/features/catalog/search'
+import { HomeBlog } from '@/features/home/components/home-blog'
+import { DesktopHero, MobileHero } from '@/features/home/components/home-hero'
+import { HomePromos } from '@/features/home/components/home-promos'
 
-/** Página de diagnóstico temporária — vira a Home real na Fase 3. */
 export const Route = createFileRoute('/')({
+  validateSearch: catalogSearchSchema,
+  search: { middlewares: [stripSearchParams(CATALOG_SEARCH_DEFAULTS)] },
+  loaderDeps: ({ search }) => toListParams(search),
+  // Pré-busca sem bloquear: a página aparece na hora com skeletons.
+  loader: ({ context, deps }) => {
+    void context.queryClient.prefetchQuery(nftListQueryOptions(deps))
+    void context.queryClient.prefetchQuery(featuredNftsQueryOptions)
+  },
   component: HomePage,
 })
 
 function HomePage() {
-  const health = useQuery(healthQueryOptions)
-  const session = useQuery(sessionQueryOptions)
+  const search = Route.useSearch()
+  const list = useQuery(nftListQueryOptions(toListParams(search)))
+  const featured = useQuery(featuredNftsQueryOptions)
 
   return (
-    <section className="container flex flex-col gap-6 py-10">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-h1">Diagnóstico (temporário)</h1>
-        <p className="text-body-sm text-muted-foreground">
-          Página provisória para checar API, sessão e socket. A Home real do Figma substitui esta tela na Fase 3;
-          o header e o footer acima/abaixo já são os definitivos.
-        </p>
+    <div className="flex flex-col gap-6 pt-10 md:gap-24 md:pt-0">
+      <div className="container flex flex-col gap-4 md:hidden">
+        <MobileSearchBar facets={list.data?.facets} />
+        <MobileHero nfts={featured.data?.hero} isLoading={featured.isPending} />
       </div>
-
-      <div className="rounded-lg border bg-card p-4">
-        <h2 className="mb-2 font-semibold">API (MSW)</h2>
-        <p className="text-sm text-muted-foreground">
-          GET /api/health →{' '}
-          <span className="text-foreground">
-            {health.isError ? `erro: ${health.error.message}` : (health.data?.status ?? '…')}
-          </span>{' '}
-          {health.data && `em ${health.data.time}`}
-        </p>
-      </div>
-
-      <div className="rounded-lg border bg-card p-4">
-        <h2 className="mb-2 font-semibold">Sessão</h2>
-        <p className="text-sm text-muted-foreground" data-testid="session-status">
-          {session.isPending
-            ? '…'
-            : session.isError
-              ? `erro: ${session.error.message}`
-              : session.data
-                ? `Logado como ${session.data.user.name} (${session.data.user.email})`
-                : 'Visitante'}
-        </p>
-      </div>
-
-      <RealtimeSpikePanel />
-    </section>
+      <DesktopHero nfts={featured.data?.hero} isLoading={featured.isPending} />
+      <CatalogSection list={list} featured={featured} />
+      <HomePromos />
+      <HomeBlog />
+    </div>
   )
 }
