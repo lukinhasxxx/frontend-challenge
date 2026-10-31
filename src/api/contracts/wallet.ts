@@ -1,4 +1,5 @@
-export const NETWORKS = ['ethereum', 'polygon', 'base'] as const
+/** Redes do filtro "Rede" do Figma. */
+export const NETWORKS = ['ethereum', 'polygon', 'solana'] as const
 export type Network = (typeof NETWORKS)[number]
 
 export type WalletRole = 'primary' | 'secondary'

@@ -49,7 +49,7 @@ export const FIXTURE_WALLETS: DbWallet[] = [
     userId: 'usr-bruno',
     label: 'Coinbase Wallet',
     address: '0x4200000000000000000000000000000000000006',
-    network: 'base',
+    network: 'polygon',
     role: 'primary',
   },
 ]
