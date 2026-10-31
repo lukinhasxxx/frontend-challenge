@@ -10,6 +10,8 @@ async function bootstrap() {
   if (import.meta.env.VITE_ENABLE_MOCKS === 'true') {
     const { startMocking } = await import('@/mocks/browser')
     await startMocking()
+    const { mountMockDevtools } = await import('@/mocks/devtools/mount')
+    mountMockDevtools()
   }
   const { renderApp } = await import('@/app/render')
   renderApp(document.getElementById('root')!)
