@@ -60,15 +60,22 @@ test('cadastro valida campos (aria-describedby), trata e-mail existente e cria a
   await expect(name).toBeFocused()
 
   await name.fill('Carla Dias')
+  // E-mail existente é avisado ao sair do campo, antes de enviar.
   await email.fill('ana@nft.dev')
-  await form.getByLabel('Senha', { exact: true }).fill('senha1234')
+  await email.blur()
+  await expect(email).toHaveAccessibleDescription('Este e-mail já está cadastrado.')
+
+  const password = form.getByLabel('Senha', { exact: true })
+  await password.fill('senha1234')
   await form.getByLabel('Confirmar senha').fill('outra1234')
   await submit.click()
+  await expect(password).toHaveAccessibleDescription('A senha deve ter ao menos uma letra maiúscula.')
   await expect(form.getByLabel('Confirmar senha')).toHaveAccessibleDescription('As senhas não coincidem.')
 
-  await form.getByLabel('Confirmar senha').fill('senha1234')
+  await password.fill('Senha@1234')
+  await form.getByLabel('Confirmar senha').fill('Senha@1234')
   await submit.click()
-  // 409 da API ligado ao campo de e-mail.
+  // 409 da API ligado ao campo de e-mail (garantia no envio).
   await expect(email).toHaveAccessibleDescription('Este e-mail já está cadastrado.')
   await expect(email).toBeFocused()
 

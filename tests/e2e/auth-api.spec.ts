@@ -49,7 +49,7 @@ test('credenciais inválidas e validação', async ({ page }) => {
 })
 
 test('cadastro cria usuário com senha hasheada e detecta conflito de e-mail', async ({ page }) => {
-  const payload = { name: 'Carla Teste', email: 'carla@nft.dev', password: 'Segredo123' }
+  const payload = { name: 'Carla Teste', email: 'carla@nft.dev', password: 'Segredo@123' }
   const created = await call(page, 'POST', '/api/auth/register', payload)
   expect(created.status).toBe(201)
 
@@ -59,7 +59,7 @@ test('cadastro cria usuário com senha hasheada e detecta conflito de e-mail', a
 
   const storedDb = await page.evaluate(() => localStorage.getItem('mock-db:v1') ?? '')
   expect(storedDb).toContain('carla@nft.dev')
-  expect(storedDb).not.toContain('Segredo123')
+  expect(storedDb).not.toContain('Segredo@123')
 })
 
 test.describe('cenário expired-session', () => {

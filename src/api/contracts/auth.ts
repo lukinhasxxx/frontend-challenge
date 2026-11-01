@@ -32,3 +32,8 @@ export type SessionResponse = {
   expiresAt: IsoDate
   user: User
 }
+
+/** GET /auth/email-availability?email= — aviso antecipado no cadastro (o 409 do POST continua valendo). */
+export type EmailAvailabilityResponse = {
+  available: boolean
+}

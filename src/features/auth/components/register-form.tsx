@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useState, type FocusEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { AuthResponse } from '@/api/contracts'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { useRegisterMutation } from '../api'
+import { emailSchema } from '@/lib/validation'
+import { isEmailAvailable, useRegisterMutation } from '../api'
 import { registerSchema, type RegisterValues } from '../schemas'
 import { applyApiError, inputClass, type AuthVariant } from '../form-utils'
 import { FormAlert, SubmitButton } from './auth-form-parts'
@@ -22,6 +23,23 @@ export function RegisterForm({ variant, onSuccess }: RegisterFormProps) {
     defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
   })
   const { errors } = form.formState
+
+  // Ao sair do campo: avisa já que o e-mail existe (sem esperar o 409 do envio).
+  async function checkEmail(event: FocusEvent<HTMLInputElement>) {
+    const parsed = emailSchema.safeParse(event.target.value)
+    if (!parsed.success) return
+    try {
+      if (!(await isEmailAvailable(parsed.data))) {
+        form.setError('email', { type: 'server', message: 'Este e-mail já está cadastrado.' })
+      }
+    } catch {
+      // Falha na checagem não bloqueia: o envio valida de novo no servidor.
+    }
+  }
+
+  function clearServerEmailError() {
+    if (form.getFieldState('email').error?.type === 'server') form.clearErrors('email')
+  }
 
   const submit = form.handleSubmit(({ name, email, password }) => {
     setFormError(null)
@@ -48,7 +66,7 @@ export function RegisterForm({ variant, onSuccess }: RegisterFormProps) {
           {(control) => (
             <Input
               {...control}
-              {...form.register('email')}
+              {...form.register('email', { onBlur: checkEmail, onChange: clearServerEmailError })}
               type="email"
               autoComplete="email"
               placeholder="Digite seu e-mail"

@@ -1,19 +1,13 @@
 import { http, HttpResponse } from 'msw'
 import { z } from 'zod'
-import type { AuthResponse, SessionResponse } from '@/api/contracts'
+import type { AuthResponse, EmailAvailabilityResponse, SessionResponse } from '@/api/contracts'
+import { displayNameSchema, emailSchema, passwordSchema } from '@/lib/validation'
 import { createSalt, createSession, hashPassword, readBearerToken, requireSession, toPublicUser } from '../auth'
 import { db } from '../db/store'
 import { apiError, parseBody, withScenario } from '../http'
 
-const registerSchema = z.object({
-  name: z.string().trim().min(2, 'Informe seu nome (mínimo 2 caracteres).').max(60, 'Nome muito longo.'),
-  email: z.email('Informe um e-mail válido.'),
-  password: z
-    .string()
-    .min(8, 'A senha deve ter ao menos 8 caracteres.')
-    .regex(/[A-Za-z]/, 'A senha deve conter letras.')
-    .regex(/\d/, 'A senha deve conter números.'),
-})
+// Mesmas regras do formulário (src/lib/validation.ts): o servidor nunca confia só no cliente.
+const registerSchema = z.object({ name: displayNameSchema, email: emailSchema, password: passwordSchema })
 
 const loginSchema = z.object({
   email: z.email('Informe um e-mail válido.'),
@@ -23,6 +17,15 @@ const loginSchema = z.object({
 const sameEmail = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
 
 export const authHandlers = [
+  http.get(
+    '/api/auth/email-availability',
+    withScenario(({ request }) => {
+      const email = new URL(request.url).searchParams.get('email') ?? ''
+      const available = !db.read().users.some((u) => sameEmail(u.email, email))
+      return HttpResponse.json<EmailAvailabilityResponse>({ available })
+    }),
+  ),
+
   http.post(
     '/api/auth/register',
     withScenario(async ({ request }) => {

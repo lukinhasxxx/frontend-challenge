@@ -1,6 +1,6 @@
 import { queryOptions, useMutation } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { AuthResponse, LoginRequest, RegisterRequest, SessionResponse } from '@/api/contracts'
+import type { AuthResponse, EmailAvailabilityResponse, LoginRequest, RegisterRequest, SessionResponse } from '@/api/contracts'
 import { ApiClientError } from '@/api/errors'
 import { authToken } from '@/api/session-storage'
 
@@ -30,6 +30,12 @@ export function useRegisterMutation() {
   return useMutation({
     mutationFn: async (body: RegisterRequest) => (await api.post<AuthResponse>('/auth/register', body)).data,
   })
+}
+
+/** Aviso antecipado de e-mail já cadastrado (o 409 do cadastro continua sendo a garantia). */
+export async function isEmailAvailable(email: string) {
+  const { data } = await api.get<EmailAvailabilityResponse>('/auth/email-availability', { params: { email } })
+  return data.available
 }
 
 /** Encerra a sessão no servidor; falha de rede não impede o logout local. */

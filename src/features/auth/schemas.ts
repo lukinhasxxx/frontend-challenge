@@ -1,20 +1,17 @@
 import { z } from 'zod'
+import { displayNameSchema, emailSchema, passwordSchema } from '@/lib/validation'
 
-/** Mesmas regras do servidor (src/mocks/handlers/auth.ts): o cliente só antecipa o feedback. */
+/** Mesmas regras do servidor (src/lib/validation.ts): o cliente só antecipa o feedback. */
 export const loginSchema = z.object({
-  email: z.string().trim().min(1, 'Informe seu e-mail.').pipe(z.email('Informe um e-mail válido.')),
+  email: emailSchema,
   password: z.string().min(1, 'Informe sua senha.'),
 })
 
 export const registerSchema = z
   .object({
-    name: z.string().trim().min(2, 'Informe seu nome de usuário (mínimo 2 caracteres).').max(60, 'Nome muito longo.'),
-    email: z.string().trim().min(1, 'Informe seu e-mail.').pipe(z.email('Informe um e-mail válido.')),
-    password: z
-      .string()
-      .min(8, 'A senha deve ter ao menos 8 caracteres.')
-      .regex(/[A-Za-z]/, 'A senha deve conter letras.')
-      .regex(/\d/, 'A senha deve conter números.'),
+    name: displayNameSchema,
+    email: emailSchema,
+    password: passwordSchema,
     confirmPassword: z.string().min(1, 'Confirme sua senha.'),
   })
   .refine((values) => values.password === values.confirmPassword, {
