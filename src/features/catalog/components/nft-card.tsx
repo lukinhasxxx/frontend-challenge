@@ -20,6 +20,8 @@ type NftCardProps = {
    * (um único alvo de clique/teclado por card).
    */
   renderLink?: (content: ReactNode, className: string) => ReactNode
+  /** Imagem provável de LCP (primeira linha no mobile): sem lazy e com prioridade alta. */
+  priority?: boolean
   className?: string
 }
 
@@ -29,7 +31,7 @@ const stretchedLink = 'after:absolute after:inset-0 after:content-[""] focus-vis
  * Card do catálogo. Mobile: caixa com gradiente e raio 20; desktop: caixa
  * chapada sem raio (fiel aos frames do Figma).
  */
-function NftCard({ name, image, priceEth, previousPriceEth, tag, action, overlay, renderLink, className }: NftCardProps) {
+function NftCard({ name, image, priceEth, previousPriceEth, tag, action, overlay, renderLink, priority, className }: NftCardProps) {
   return (
     <article
       className={cn(
@@ -44,8 +46,9 @@ function NftCard({ name, image, priceEth, previousPriceEth, tag, action, overlay
           alt=""
           width={250}
           height={250}
-          loading="lazy"
+          loading={priority ? 'eager' : 'lazy'}
           decoding="async"
+          {...(priority && { fetchpriority: 'high' })} // React 18 só repassa o atributo em minúsculas
           className="aspect-square w-full rounded-xl object-cover transition-transform duration-300 group-hover/card:scale-[1.02] md:rounded-[0.9375rem]"
         />
         {tag && (
