@@ -1,20 +1,28 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import type { Nft } from '@/api/contracts'
 import { NftCard, NftCardSkeleton } from '@/features/catalog/components/nft-card'
 
 const PER_PAGE = 5
 
-/** Desktop: "Mais desta coleção" — 5 cards por página com pontos de navegação. */
-export function RelatedNfts({ nfts, isLoading }: { nfts: Nft[] | undefined; isLoading: boolean }) {
+type RelatedNftsProps = {
+  nfts: Nft[] | undefined
+  isLoading: boolean
+  /** Detalhe: "Mais desta coleção"; carrinho: "Colecionadores também viram". */
+  title?: string
+}
+
+/** Desktop: carrossel de 5 cards por página com pontos de navegação. */
+export function RelatedNfts({ nfts, isLoading, title = 'Mais desta coleção' }: RelatedNftsProps) {
   const [page, setPage] = useState(0)
+  const titleId = useId()
   const pages = Math.ceil((nfts?.length ?? 0) / PER_PAGE)
   if (!isLoading && !nfts?.length) return null
 
   return (
-    <section aria-labelledby="related-title" className="flex flex-col gap-8">
-      <h2 id="related-title" className="border-b border-border pb-3 text-h3 text-accent-foreground">
-        Mais desta coleção
+    <section aria-labelledby={titleId} className="flex flex-col gap-8">
+      <h2 id={titleId} className="border-b border-border pb-3 text-h3 text-accent-foreground">
+        {title}
       </h2>
       <ul className="grid grid-cols-3 gap-6 lg:grid-cols-5">
         {isLoading
@@ -41,7 +49,7 @@ export function RelatedNfts({ nfts, isLoading }: { nfts: Nft[] | undefined; isLo
             ))}
       </ul>
       {pages > 1 && (
-        <div role="group" aria-label="Páginas da coleção" className="flex justify-center gap-2">
+        <div role="group" aria-label={`Páginas de "${title}"`} className="flex justify-center gap-2">
           {Array.from({ length: pages }, (_, i) => (
             <button
               key={i}

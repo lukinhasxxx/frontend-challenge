@@ -3,6 +3,9 @@ import { useMatches, useNavigate, useRouter, useSearch } from '@tanstack/react-r
 import { XIcon } from 'lucide-react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import type { AuthResponse } from '@/api/contracts'
+import { mergeGuestCart } from '@/features/cart/api'
+import { completePendingFavorite } from '@/features/favorites/api'
+import { clearPendingFavorite } from '@/features/favorites/pending'
 import { DESKTOP_QUERY, useMediaQuery } from '@/lib/use-media-query'
 import { cn } from '@/lib/utils'
 import { safeRedirect } from '../guard'
@@ -61,6 +64,7 @@ export function AuthDialog() {
   }
 
   function close() {
+    clearPendingFavorite()
     if (invalidReason) {
       // Desistiu de entrar de novo: encerra a sessão anterior por completo.
       endSession(queryClient)
@@ -74,6 +78,9 @@ export function AuthDialog() {
 
   function handleSuccess(auth: AuthResponse) {
     startSession(queryClient, auth)
+    // Itens do visitante entram no carrinho da conta; favorito pedido antes do login é concluído.
+    void mergeGuestCart(queryClient)
+    void completePendingFavorite(queryClient)
     const target = safeRedirect(search.redirect)
     if (target) void router.navigate({ href: target, replace: true })
     else clearAuthParams()

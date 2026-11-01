@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { NftUpdatedEvent } from '@/api/contracts'
+import { cartKeys, revalidateCartFor } from '@/features/cart/api'
 import { nftKeys } from '@/features/catalog/api'
 import { displayEth } from '@/lib/eth'
 import { applyNftEvent } from './apply-nft-event'
@@ -30,7 +31,10 @@ export function RealtimeSync() {
     const onConnect = () => {
       document.documentElement.dataset.realtime = 'connected'
       // Reconexão: eventos perdidos durante a queda são recuperados via REST.
-      if (connectedBefore) void queryClient.invalidateQueries({ queryKey: nftKeys.all })
+      if (connectedBefore) {
+        void queryClient.invalidateQueries({ queryKey: nftKeys.all })
+        void queryClient.invalidateQueries({ queryKey: cartKeys.all })
+      }
       connectedBefore = true
     }
     const onDisconnect = () => {
@@ -38,6 +42,7 @@ export function RealtimeSync() {
     }
     const onNftUpdated = (event: NftUpdatedEvent) => {
       if (applyNftEvent(queryClient, event) !== 'applied') return
+      revalidateCartFor(queryClient, event.resourceId)
       const message = describe(event)
       setAnnouncement(message)
       toast.info(message, { id: `nft-${event.resourceId}` })

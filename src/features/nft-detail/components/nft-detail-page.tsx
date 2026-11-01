@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, Heart, Mail, ShoppingCart } from 'lucide-react'
+import { ChevronLeft, Mail, ShoppingCart } from 'lucide-react'
 import type { Edition, Nft } from '@/api/contracts'
 import { ApiClientError } from '@/api/errors'
 import { LinkedinIcon, TwitterIcon } from '@/components/icons/social'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { EthPrice } from '@/components/ui/eth-price'
 import { Skeleton } from '@/components/ui/skeleton'
 import { nftDetailQueryOptions, relatedNftsQueryOptions } from '@/features/catalog/api'
 import { displayEth, multiplyEth } from '@/lib/eth'
-import { notifyInDevelopment } from '@/lib/in-development'
+import { cn } from '@/lib/utils'
+import { cartQueryOptions, quantityInCart } from '@/features/cart/api'
+import { useAddToCartAction } from '@/features/cart/use-add-to-cart'
+import { FavoriteButton } from '@/features/favorites/components/favorite-button'
 import { EditionPicker } from './edition-picker'
 import { NftDetailTabs } from './nft-detail-tabs'
 import { NftGallery } from './nft-gallery'
@@ -26,10 +29,6 @@ function defaultEdition(nft: Nft): Edition | undefined {
     nft.editions[0]
   )
 }
-
-// Carrinho e favoritos chegam na Fase 5; até lá os botões avisam.
-const addToCart = () => notifyInDevelopment('Comprar')
-const toggleFavorite = () => notifyInDevelopment('Favoritar')
 
 function ShareLinks({ nft }: { nft: Nft }) {
   const url = encodeURIComponent(window.location.href)
@@ -70,9 +69,12 @@ function TokenInfo({ nft }: { nft: Nft }) {
   )
 }
 
-function StockMessage({ edition, quantity }: { edition: Edition | undefined; quantity: number }) {
+function StockMessage({ edition, quantity, inCart }: { edition: Edition | undefined; quantity: number; inCart: number }) {
   if (!edition) return null
   if (edition.available === 0) return <p className="text-caption text-destructive-text">Edição esgotada. Escolha outra edição.</p>
+  // Estado não desenhado no Figma: tudo o que resta da edição já está no carrinho.
+  if (inCart >= edition.available)
+    return <p className="text-caption text-muted-foreground">Todas as unidades disponíveis desta edição já estão no seu carrinho.</p>
   // Fora do Figma: o "+" desabilitado já mostra o limite; o texto fica só para leitores de tela.
   if (quantity >= edition.available)
     return (
@@ -86,11 +88,15 @@ function StockMessage({ edition, quantity }: { edition: Edition | undefined; qua
 function DetailView({ nft }: { nft: Nft }) {
   const router = useRouter()
   const related = useQuery(relatedNftsQueryOptions(nft.id))
+  const cart = useQuery(cartQueryOptions)
+  const { add, pending } = useAddToCartAction()
   const [editionId, setEditionId] = useState(() => defaultEdition(nft)?.id ?? '')
   const [rawQuantity, setQuantity] = useState(1)
 
   const edition = nft.editions.find((e) => e.id === editionId) ?? defaultEdition(nft)
-  const max = edition?.available ?? 0
+  // Limite = disponível − o que já está no carrinho (a API valida de novo).
+  const inCart = quantityInCart(cart.data, edition?.id)
+  const max = Math.max(0, (edition?.available ?? 0) - inCart)
   // Se a disponibilidade cair (tempo real), a quantidade acompanha o novo limite.
   const quantity = Math.max(1, Math.min(rawQuantity, max))
   const unitPrice = edition?.priceEth ?? nft.priceEth
@@ -99,6 +105,11 @@ function DetailView({ nft }: { nft: Nft }) {
   function selectEdition(id: string) {
     setEditionId(id)
     setQuantity(1)
+  }
+
+  function addToCart(goToCart: boolean) {
+    if (!edition || !canBuy) return
+    add({ nftId: nft.id, editionId: edition.id, quantity }, { name: nft.name, goToCart })
   }
 
   return (
@@ -141,15 +152,18 @@ function DetailView({ nft }: { nft: Nft }) {
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <QuantityStepper value={quantity} max={max} onChange={setQuantity} />
                 <div className="flex gap-3">
-                  <Button className="h-9 w-[7.1875rem] font-bold uppercase" disabled={!canBuy} onClick={addToCart}>
+                  <Button className="h-9 w-[7.1875rem] font-bold uppercase" disabled={!canBuy || pending} onClick={() => addToCart(true)}>
                     Comprar
                   </Button>
-                  <Button variant="outline" className="h-9 border-primary" onClick={toggleFavorite}>
-                    <Heart aria-hidden="true" /> Favoritar
-                  </Button>
+                  <FavoriteButton
+                    nft={nft}
+                    className={cn(buttonVariants({ variant: 'outline' }), 'h-9 border-primary aria-pressed:text-accent-foreground')}
+                  >
+                    {() => 'Favoritar'}
+                  </FavoriteButton>
                 </div>
               </div>
-              <StockMessage edition={edition} quantity={quantity} />
+              <StockMessage edition={edition} quantity={quantity} inCart={inCart} />
               <TokenInfo nft={nft} />
               <ShareLinks nft={nft} />
             </div>
@@ -172,14 +186,10 @@ function DetailView({ nft }: { nft: Nft }) {
             >
               <ChevronLeft className="size-5" aria-hidden="true" />
             </button>
-            <button
-              type="button"
-              aria-label="Favoritar"
-              onClick={toggleFavorite}
-              className="flex size-[2.1875rem] cursor-pointer items-center justify-center rounded-full border border-border text-accent-foreground"
-            >
-              <Heart className="size-5" aria-hidden="true" />
-            </button>
+            <FavoriteButton
+              nft={nft}
+              className="flex size-[2.1875rem] items-center justify-center rounded-full border border-border text-accent-foreground"
+            />
           </div>
           <img src={nft.images[0]} alt={nft.name} width={361} height={361} className="aspect-square w-full rounded-3xl object-cover" />
         </div>
@@ -191,7 +201,7 @@ function DetailView({ nft }: { nft: Nft }) {
           </div>
           <p className="text-body-sm leading-6 text-muted-foreground">{nft.description}</p>
           <EditionPicker editions={nft.editions} value={edition?.id ?? ''} onChange={selectEdition} />
-          <StockMessage edition={edition} quantity={quantity} />
+          <StockMessage edition={edition} quantity={quantity} inCart={inCart} />
           <TokenInfo nft={nft} />
         </div>
 
@@ -207,7 +217,7 @@ function DetailView({ nft }: { nft: Nft }) {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="cta" className="h-[3.75rem] flex-1 text-body-lg" disabled={!canBuy} onClick={addToCart}>
+            <Button variant="cta" className="h-[3.75rem] flex-1 text-body-lg" disabled={!canBuy || pending} onClick={() => addToCart(true)}>
               Comprar NFT
             </Button>
             <Button
@@ -215,8 +225,8 @@ function DetailView({ nft }: { nft: Nft }) {
               size="icon-lg"
               aria-label="Adicionar ao carrinho"
               className="size-[3.75rem] rounded-full border border-border bg-surface-raised"
-              disabled={!canBuy}
-              onClick={addToCart}
+              disabled={!canBuy || pending}
+              onClick={() => addToCart(false)}
             >
               <ShoppingCart className="size-5" aria-hidden="true" />
             </Button>

@@ -11,8 +11,10 @@ type NftCardProps = {
   previousPriceEth?: string | null
   /** Etiqueta sobre a imagem (ex.: "Raro", "Esgotado"). */
   tag?: string
-  /** Ação sobreposta à imagem (ex.: botão de favorito). */
+  /** Ação sobreposta à imagem, no canto superior (ex.: coração no mobile). */
   action?: ReactNode
+  /** Conteúdo sobre a base da imagem (ex.: atalhos no hover do desktop). */
+  overlay?: ReactNode
   /**
    * Envolve o nome em um link. O link "estica" sobre o card inteiro
    * (um único alvo de clique/teclado por card).
@@ -27,7 +29,7 @@ const stretchedLink = 'after:absolute after:inset-0 after:content-[""] focus-vis
  * Card do catálogo. Mobile: caixa com gradiente e raio 20; desktop: caixa
  * chapada sem raio (fiel aos frames do Figma).
  */
-function NftCard({ name, image, priceEth, previousPriceEth, tag, action, renderLink, className }: NftCardProps) {
+function NftCard({ name, image, priceEth, previousPriceEth, tag, action, overlay, renderLink, className }: NftCardProps) {
   return (
     <article
       className={cn(
@@ -35,7 +37,8 @@ function NftCard({ name, image, priceEth, previousPriceEth, tag, action, renderL
         className,
       )}
     >
-      <div className="relative rounded-[1.25rem] bg-linear-to-b from-card to-surface-raised px-1 pt-3 pb-5 md:rounded-none md:bg-card md:bg-none md:pt-7">
+      {/* Figma (hover no desktop): linha cobre no topo do card. */}
+      <div className="relative rounded-[1.25rem] bg-linear-to-b from-card to-surface-raised px-1 pt-3 pb-5 md:rounded-none md:bg-card md:bg-none md:pt-7 md:group-hover/card:shadow-[inset_0_1px_0_0_var(--color-primary)]">
         <img
           src={image}
           alt=""
@@ -52,6 +55,7 @@ function NftCard({ name, image, priceEth, previousPriceEth, tag, action, renderL
           </Badge>
         )}
         {action && <div className="absolute top-5 right-3 z-10 md:top-9">{action}</div>}
+        {overlay}
       </div>
       <div className="flex flex-col gap-1 pl-2 md:gap-3 md:pl-0">
         <h3 className="truncate text-[0.9375rem] leading-5 font-normal md:text-body-lg">

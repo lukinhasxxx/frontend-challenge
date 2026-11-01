@@ -6,7 +6,8 @@ import { Pagination } from '@/components/ui/pagination'
 import { cn } from '@/lib/utils'
 import { CATALOG_PAGE_SIZE } from '../search'
 import { useCatalogSearch } from '../use-catalog-search'
-import { NftCard, NftCardSkeleton } from './nft-card'
+import { CatalogNftCard } from './catalog-nft-card'
+import { NftCardSkeleton } from './nft-card'
 import { CatalogFilters } from './catalog-filters'
 import { CatalogToolbar } from './catalog-toolbar'
 import { SpotlightCard } from './spotlight-card'
@@ -41,7 +42,7 @@ export function CatalogSection({ list, featured }: CatalogSectionProps) {
           <SpotlightCard nft={featured.data?.spotlight} isLoading={featured.isPending} />
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-8">
+        <div className="flex min-w-0 flex-1 flex-col gap-4 md:gap-8">
           <CatalogToolbar facets={data?.facets} />
 
           {search.q && (
@@ -91,18 +92,7 @@ export function CatalogSection({ list, featured }: CatalogSectionProps) {
               >
                 {data.items.map((nft) => (
                   <li key={nft.id}>
-                    <NftCard
-                      name={nft.name}
-                      image={nft.thumbnail}
-                      priceEth={nft.priceEth}
-                      previousPriceEth={nft.previousPriceEth}
-                      tag={nft.attributes.includes('Raro') ? 'Raro' : undefined}
-                      renderLink={(content, className) => (
-                        <Link to="/nft/$nftId" params={{ nftId: nft.id }} className={className}>
-                          {content}
-                        </Link>
-                      )}
-                    />
+                    <CatalogNftCard nft={nft} />
                   </li>
                 ))}
               </ul>

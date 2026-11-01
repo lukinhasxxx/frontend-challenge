@@ -4,6 +4,7 @@ import { LogIn, ShoppingCart, UserRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { sessionQueryOptions } from '@/features/auth/api'
+import { cartQueryOptions } from '@/features/cart/api'
 import { cn } from '@/lib/utils'
 import { HeaderSearch } from './header-search'
 import { Logo } from './logo'
@@ -15,10 +16,10 @@ const navLinkClass =
 /** Header desktop/tablet (Figma: linha de 1200px, nav central, ações à direita). */
 export function SiteHeader() {
   const session = useQuery(sessionQueryOptions)
-  // Figma: no detalhe do NFT o item ativo do menu é "Mercado".
-  const onNftDetail = useMatches({ select: (matches) => matches.some((m) => m.routeId === '/nft/$nftId') })
-  // Contagem real do carrinho chega na Fase 5.
-  const cartCount: number = 0
+  // Figma: no detalhe do NFT e no carrinho o item ativo do menu é "Mercado".
+  const onMarket = useMatches({ select: (matches) => matches.some((m) => m.routeId === '/nft/$nftId' || m.routeId === '/carrinho') })
+  const cart = useQuery(cartQueryOptions)
+  const cartCount = cart.data?.itemCount ?? 0
 
   return (
     <header className="hidden md:block">
@@ -36,8 +37,8 @@ export function SiteHeader() {
               to="/"
               hash="mercado"
               activeOptions={{ includeHash: true }}
-              aria-current={onNftDetail ? 'page' : undefined}
-              className={cn(navLinkClass, onNftDetail && 'font-bold text-accent-foreground after:opacity-100')}
+              aria-current={onMarket ? 'page' : undefined}
+              className={cn(navLinkClass, onMarket && 'font-bold text-accent-foreground after:opacity-100')}
             >
               Mercado
             </Link>
