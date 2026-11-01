@@ -14,3 +14,6 @@ SPEC.md
 PROGRESS.md
 .claude/
 .figma
+
+# Utilitários locais de extração do Figma (dependem de token e arquivo privados)
+scripts/figma/
