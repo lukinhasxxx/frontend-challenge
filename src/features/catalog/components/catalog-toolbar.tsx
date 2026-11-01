@@ -8,7 +8,7 @@ import { useCatalogSearch } from '../use-catalog-search'
 import { FiltersSheet } from './filters-sheet'
 
 const tabClass =
-  'relative cursor-pointer whitespace-nowrap pt-1 pb-1.5 text-body-sm text-foreground transition-colors hover:text-accent-foreground md:text-body md:font-medium after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary after:opacity-0 aria-pressed:font-bold aria-pressed:text-accent-foreground aria-pressed:after:opacity-100'
+  'relative cursor-pointer whitespace-nowrap pb-1.5 text-[0.875rem] leading-4 text-foreground md:pt-1 md:leading-normal transition-colors hover:text-accent-foreground md:text-body md:font-medium after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary after:opacity-0 aria-pressed:font-bold aria-pressed:text-accent-foreground aria-pressed:after:opacity-100'
 
 /** Abas "Todos os NFTs / Novos lançamentos / Em alta" + "Ordenar por" (desktop). */
 export function CatalogToolbar({ facets }: { facets: NftListResponse['facets'] | undefined }) {

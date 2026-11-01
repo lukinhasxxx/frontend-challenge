@@ -26,7 +26,7 @@ function HomePage() {
   const featured = useQuery(featuredNftsQueryOptions)
 
   return (
-    <div className="flex flex-col gap-6 pt-10 md:gap-24 md:pt-0">
+    <div className="flex flex-col gap-4 pt-10 md:gap-24 md:pt-0">
       <div className="container flex flex-col gap-4 md:hidden">
         <MobileSearchBar facets={list.data?.facets} />
         <MobileHero nfts={featured.data?.hero} isLoading={featured.isPending} />

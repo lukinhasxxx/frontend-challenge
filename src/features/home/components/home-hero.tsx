@@ -126,19 +126,30 @@ export function MobileHero({ nfts, isLoading }: { nfts: Nft[] | undefined; isLoa
   const next = nfts?.[(index + 1) % (nfts?.length || 1)]
 
   return (
-    <section aria-label="Destaques" className="relative touch-pan-y overflow-hidden rounded-xl bg-card p-4 md:hidden"
+    // Figma "Hero Banner" (366×190, r12): fundo cobre translúcido + 2 círculos de 248px em (−80, −31) e (73, −10).
+    <section
+      aria-label="Destaques"
+      className="relative touch-pan-y overflow-hidden rounded-[0.75rem] bg-[linear-gradient(117deg,rgb(210_138_76/0.2),rgb(210_138_76/0.1))] px-4 pt-1.5 pb-[0.3125rem] md:hidden"
       {...pauseHandlers}
       {...swipeHandlers}
     >
-      <span aria-hidden="true" className="absolute -top-8 -left-20 size-62 rounded-full bg-linear-to-br from-primary-hover/25 to-primary/10" />
-      <span aria-hidden="true" className="absolute -top-2.5 left-20 size-62 rounded-full bg-linear-to-br from-primary-hover/20 to-primary/5" />
+      <span
+        aria-hidden="true"
+        className="absolute -top-[1.9375rem] -left-20 size-62 rounded-full bg-[linear-gradient(160deg,rgb(221_154_95/0.43)_5%,rgb(210_138_76/0.04)_92%)]"
+      />
+      <span
+        aria-hidden="true"
+        className="absolute -top-2.5 left-[4.5625rem] size-62 rounded-full bg-[linear-gradient(160deg,rgb(221_154_95/0.37)_5%,rgb(210_138_76/0)_92%)]"
+      />
 
-      <div className="relative flex items-center gap-2">
-        <div className="flex flex-1 flex-col gap-1.5">
-          <p className="text-caption font-medium">Bem-vindo à Kurio</p>
-          <h1 className="text-[1.125rem] leading-[1.8125rem] font-bold uppercase">Seja dono da cultura digital</h1>
-          <p className="text-caption leading-[1.125rem] text-muted-foreground">Descubra NFTs selecionados de criadores do mundo todo.</p>
-          <Link to="/" hash="mercado" className="mt-1 flex items-center gap-2 text-caption font-bold text-accent-foreground uppercase">
+      <div className="relative flex h-39 items-center gap-2">
+        <div className="flex flex-1 flex-col">
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[0.75rem] leading-4 font-medium">Bem-vindo à Kurio</p>
+            <h1 className="text-[1.125rem] leading-[1.8125rem] font-bold uppercase">Seja dono da cultura digital</h1>
+            <p className="text-[0.75rem] leading-[1.125rem] text-muted-foreground">Descubra NFTs selecionados de criadores do mundo todo.</p>
+          </div>
+          <Link to="/" hash="mercado" className="flex w-fit items-center gap-2 text-[0.75rem] leading-[0.875rem] font-bold text-accent-foreground uppercase">
             Explorar
             <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
@@ -155,14 +166,16 @@ export function MobileHero({ nfts, isLoading }: { nfts: Nft[] | undefined; isLoa
                   alt=""
                   width={58}
                   height={58}
-                  className="absolute bottom-[-0.5rem] left-3.5 size-[3.625rem] rounded-xl border-2 border-card object-cover"
+                  className="absolute bottom-[-0.5rem] left-3.5 size-[3.625rem] rounded-xl object-cover"
                 />
               )}
             </Link>
           )}
         </div>
       </div>
-      {nfts && nfts.length > 1 && <Dots count={nfts.length} index={index} onSelect={setIndex} className="relative mt-4 justify-center" />}
+      {nfts && nfts.length > 1 && (
+        <Dots count={nfts.length} index={index} onSelect={setIndex} className="relative mt-4 justify-center gap-1.5 [&>button]:size-[0.4375rem]" />
+      )}
     </section>
   )
 }
