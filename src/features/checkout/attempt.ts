@@ -11,8 +11,6 @@ export type CheckoutAttempt = {
   userId: string
   key: string
   body: CreateOrderRequest
-  /** Preenchido quando a API respondeu com o pedido. */
-  orderId: string | null
 }
 
 export const checkoutAttempt = {
