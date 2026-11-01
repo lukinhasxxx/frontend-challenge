@@ -1,4 +1,4 @@
-# Kurio — Marketplace de NFTs
+# Kurio — Marketplace de NFTs - Desafio frontend
 
 SPA de marketplace de NFTs: catálogo com busca e filtros, detalhe com edições, favoritos, carrinho com cupom, carteiras, checkout idempotente, acompanhamento do pedido em tempo real, recibo e perfil do colecionador.
 
