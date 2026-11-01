@@ -14,11 +14,11 @@ test('header desktop navega e marca a página ativa', async ({ page, isMobile })
 
 test('barra de abas mobile substitui o header', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'barra de abas é exclusiva do mobile')
-  await gotoApp(page, '/carrinho')
+  await gotoApp(page)
 
   await expect(page.getByRole('navigation', { name: 'Principal' })).toBeHidden()
   const tabs = page.getByRole('navigation', { name: 'Navegação inferior' })
-  await expect(tabs.getByRole('link', { name: 'Carrinho' })).toHaveAttribute('data-status', 'active')
+  await expect(tabs.getByRole('link', { name: 'Início' })).toHaveAttribute('data-status', 'active')
   await expect(page.getByRole('contentinfo')).toBeHidden() // Figma mobile não tem footer
 
   await tabs.getByRole('button', { name: 'Escanear NFT (em desenvolvimento)' }).click()
@@ -27,6 +27,12 @@ test('barra de abas mobile substitui o header', async ({ page, isMobile }) => {
   // Favoritos exige login: abre a tela "Entrar" do Figma mobile.
   await tabs.getByRole('link', { name: 'Favoritos' }).click()
   await expect(page.getByRole('dialog', { name: 'Entrar' })).toBeVisible()
+  await page.keyboard.press('Escape')
+
+  // Carrinho (Figma mobile): tela com resumo fixo próprio, sem a barra de abas.
+  await tabs.getByRole('link', { name: 'Carrinho' }).click()
+  await expect(page).toHaveURL('/carrinho')
+  await expect(page.getByRole('navigation', { name: 'Navegação inferior' })).toHaveCount(0)
 })
 
 test('páginas editoriais do menu avisam que estão em desenvolvimento', async ({ page, isMobile }) => {
