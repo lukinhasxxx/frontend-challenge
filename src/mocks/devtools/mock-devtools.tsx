@@ -74,7 +74,7 @@ export function MockDevtools() {
   // Sem escolha manual: começa pelo NFT/edição que está no carrinho (teste de tempo real no carrinho).
   const inCart = (edition: Edition) => cartEditionIds.includes(edition.id)
   const selectedNft =
-    state?.nfts.find((n) => n.id === nftId) ?? state?.nfts.find((n) => n.editions.some(inCart)) ?? state?.nfts[0]
+    state?.nfts.find((n) => n.id === nftId) ?? state?.nfts.find((n) => n.editions?.some(inCart)) ?? state?.nfts[0]
   const selectedEdition =
     selectedNft?.editions.find((e) => e.id === editionId) ?? selectedNft?.editions.find(inCart) ?? selectedNft?.editions[0]
 
@@ -190,7 +190,7 @@ export function MockDevtools() {
             >
               {state?.nfts.map((n) => (
                 <option key={n.id} value={n.id}>
-                  {n.id} · {n.name} (v{n.version}){n.editions.some(inCart) && ' · no carrinho'}
+                  {n.id} · {n.name} (v{n.version}){n.editions?.some(inCart) && ' · no carrinho'}
                 </option>
               ))}
             </select>
@@ -249,7 +249,7 @@ export function MockDevtools() {
 
           <Section title="Pedidos — pagamento">
             <p className="text-xs text-muted-foreground">
-              {state?.pendingOrders.length
+              {state?.pendingOrders?.length
                 ? `Pendente mais recente: ${state.pendingOrders.at(-1)!.id}`
                 : 'Nenhum pedido pendente (use o cenário payment-pending para segurar o pagamento).'}
             </p>
@@ -259,7 +259,7 @@ export function MockDevtools() {
                   key={status}
                   size="sm"
                   variant="outline"
-                  disabled={!state?.pendingOrders.length}
+                  disabled={!state?.pendingOrders?.length}
                   onClick={() =>
                     void run(status === 'confirmed' ? 'Pagamento confirmado (order.updated)' : 'Pagamento recusado (order.updated)', () =>
                       mockFetch('/__mock/orders/settle', { method: 'POST', body: JSON.stringify({ status }) }),

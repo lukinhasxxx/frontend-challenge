@@ -2,6 +2,9 @@ import type { Page } from '@playwright/test'
 import { test, expect, gotoApp } from '../support/test'
 import { callApi, waitForRealtime } from '../support/mock'
 
+/** E-mail exibido no formulário do perfil (prova de qual conta está logada). */
+const profileEmail = (page: Page) => page.getByRole('form', { name: 'Perfil do colecionador' }).getByLabel('E-mail')
+
 const PASSWORD = 'Senha@123'
 const dialog = (page: Page) => page.getByRole('dialog')
 const token = (page: Page) => page.evaluate(() => localStorage.getItem('auth-token'))
@@ -40,11 +43,11 @@ test('rota privada abre o login e volta para ela após entrar; refresh mantém a
   await signIn(page, 'ana@nft.dev')
   await expect(page).toHaveURL('/perfil')
   await expect(dialog(page)).toBeHidden()
-  await expect(page.getByText('ana@nft.dev')).toBeVisible()
+  await expect(profileEmail(page)).toHaveValue('ana@nft.dev')
 
   await page.reload()
   await page.locator('html[data-app-ready="true"]').waitFor({ state: 'attached' })
-  await expect(page.getByText('ana@nft.dev')).toBeVisible()
+  await expect(profileEmail(page)).toHaveValue('ana@nft.dev')
 })
 
 test('cadastro valida campos (aria-describedby), trata e-mail existente e cria a conta', async ({ page }) => {
@@ -89,7 +92,7 @@ test('sessão expirada durante a navegação reabre o login e retoma o destino',
   await gotoApp(page, '/perfil')
   await signIn(page, 'ana@nft.dev')
   // Espera a rota terminar de carregar (a revalidação da sessão ao entrar já respondeu).
-  await expect(page.getByText('ana@nft.dev')).toBeVisible()
+  await expect(profileEmail(page)).toHaveValue('ana@nft.dev')
 
   expect((await callApi(page, 'POST', '/__mock/session/expire')).status).toBe(204)
   await page.getByRole('link', { name: 'Início', exact: true }).first().click()
@@ -100,13 +103,13 @@ test('sessão expirada durante a navegação reabre o login e retoma o destino',
 
   await signIn(page, 'ana@nft.dev')
   await expect(page).toHaveURL('/perfil')
-  await expect(page.getByText('ana@nft.dev')).toBeVisible()
+  await expect(profileEmail(page)).toHaveValue('ana@nft.dev')
 })
 
 test('desistir de entrar após expirar encerra a sessão anterior', async ({ page }) => {
   await gotoApp(page, '/perfil')
   await signIn(page, 'ana@nft.dev')
-  await expect(page.getByText('ana@nft.dev')).toBeVisible()
+  await expect(profileEmail(page)).toHaveValue('ana@nft.dev')
 
   await callApi(page, 'POST', '/__mock/session/expire')
   await page.reload()
@@ -122,7 +125,7 @@ test('desistir de entrar após expirar encerra a sessão anterior', async ({ pag
 test('logout e troca de usuário não deixam dados da conta anterior', async ({ page, isMobile }) => {
   await gotoApp(page, '/perfil')
   await signIn(page, 'ana@nft.dev')
-  await expect(page.getByText('ana@nft.dev')).toBeVisible()
+  await expect(profileEmail(page)).toHaveValue('ana@nft.dev')
   expect(await cacheDump(page)).toContain('ana@nft.dev')
 
   await page.getByRole('button', { name: 'Sair' }).click()
@@ -137,7 +140,7 @@ test('logout e troca de usuário não deixam dados da conta anterior', async ({ 
   else await expect(page).toHaveURL(/auth=login&redirect=%2Fperfil/)
   await signIn(page, 'bruno@nft.dev')
   if (!isMobile) await page.getByRole('banner').getByRole('link', { name: 'Bruno' }).click()
-  await expect(page.getByText('bruno@nft.dev')).toBeVisible()
+  await expect(profileEmail(page)).toHaveValue('bruno@nft.dev')
   expect(await cacheDump(page)).not.toContain('ana@nft.dev')
 })
 

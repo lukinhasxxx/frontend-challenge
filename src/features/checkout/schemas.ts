@@ -18,7 +18,7 @@ function usernameFrom(email: string) {
 export function paymentDefaults(wallet: Wallet, user: User, network = wallet.network): PaymentValues {
   return {
     displayName: wallet.displayName,
-    username: usernameFrom(user.email),
+    username: user.username || usernameFrom(user.email),
     profileName: wallet.profileName,
     email: wallet.email,
     referralCode: wallet.referralCode,

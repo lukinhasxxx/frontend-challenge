@@ -8,7 +8,11 @@ export const FIXTURE_USERS: DbUser[] = [
   {
     id: 'usr-ana',
     name: 'Ana Souza',
+    username: 'ana.souza',
     email: 'ana@nft.dev',
+    ensName: 'ana.kurio',
+    ensSuffix: '.eth',
+    walletAlias: 'Principal',
     avatarUrl: '/assets/avatars/creator-03.webp',
     bio: 'Colecionadora de arte generativa.',
     createdAt: FIXTURE_BASE_DATE,
@@ -18,7 +22,11 @@ export const FIXTURE_USERS: DbUser[] = [
   {
     id: 'usr-bruno',
     name: 'Bruno Lima',
+    username: 'bruno.lima',
     email: 'bruno@nft.dev',
+    ensName: 'bruno.kurio',
+    ensSuffix: '.eth',
+    walletAlias: 'Principal',
     avatarUrl: null,
     bio: '',
     createdAt: FIXTURE_BASE_DATE,

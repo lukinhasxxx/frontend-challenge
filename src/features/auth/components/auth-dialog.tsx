@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMatches, useNavigate, useRouter, useSearch } from '@tanstack/react-router'
 import { XIcon } from 'lucide-react'
@@ -51,6 +52,9 @@ export function AuthDialog() {
   const { invalidReason } = useSessionState()
   const onPrivateRoute = useMatches({ select: (matches) => matches.some((m) => m.staticData.requiresAuth) })
   const variant: AuthVariant = useMediaQuery(DESKTOP_QUERY) ? 'desktop' : 'mobile'
+
+  // Aberto pela URL (não por um Trigger do Radix): guardamos quem tinha o foco para devolvê-lo ao fechar.
+  const returnFocusRef = useRef<HTMLElement | null>(null)
 
   const mode: AuthMode = search.auth ?? 'login'
   const open = Boolean(search.auth) || invalidReason !== null
@@ -108,10 +112,19 @@ export function AuthDialog() {
         <DialogPrimitive.Content
           // Foco inicial no primeiro campo (o Figma mostra o campo em foco), não no botão fechar.
           onOpenAutoFocus={(event) => {
+            returnFocusRef.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null
             const firstInput = (event.currentTarget as HTMLElement | null)?.querySelector('input')
             if (firstInput) {
               event.preventDefault()
               firstInput.focus()
+            }
+          }}
+          onCloseAutoFocus={(event) => {
+            const target = returnFocusRef.current
+            returnFocusRef.current = null
+            if (target?.isConnected) {
+              event.preventDefault()
+              target.focus()
             }
           }}
           className={cn(

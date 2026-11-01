@@ -1,9 +1,17 @@
 import type { IsoDate } from './common'
+import type { EnsSuffix } from './wallet'
 
 export type User = {
   id: string
+  /** "Nome de exibição". */
   name: string
+  /** "Nome de usuário" (único). */
+  username: string
   email: string
+  ensName: string
+  ensSuffix: EnsSuffix
+  /** "Apelido da carteira" do perfil (Figma). */
+  walletAlias: string
   avatarUrl: string | null
   bio: string
   createdAt: IsoDate
