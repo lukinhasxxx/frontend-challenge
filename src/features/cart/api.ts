@@ -72,5 +72,5 @@ export function quantityInCart(cart: Cart | undefined, editionId: string | undef
  */
 export function revalidateCartFor(queryClient: QueryClient, nftId: string) {
   const cart = queryClient.getQueryData<Cart>(cartKeys.all)
-  if (cart?.lines.some((line) => line.nftId === nftId)) void queryClient.invalidateQueries({ queryKey: cartKeys.all })
+  if (cart?.lines?.some((line) => line.nftId === nftId)) void queryClient.invalidateQueries({ queryKey: cartKeys.all })
 }

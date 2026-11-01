@@ -76,7 +76,7 @@ export function useFavorite(nft: Nft) {
   const favorites = useFavorites()
   const toggleMutation = useToggleFavoriteMutation()
   const navigate = useNavigate()
-  const isFavorite = Boolean(favorites.data?.items.some((item) => item.id === nft.id))
+  const isFavorite = Boolean(favorites.data?.items?.some((item) => item.id === nft.id))
 
   function toggle() {
     if (!session) {
