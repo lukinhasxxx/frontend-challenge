@@ -239,7 +239,8 @@ function DetailView({ nft }: { nft: Nft }) {
 
 function DetailSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Carregando NFT">
+    // Altura mínima de uma tela: a página pronta é mais alta, então o rodapé não aparece e é empurrado (CLS).
+    <div aria-busy="true" aria-label="Carregando NFT" className="min-h-svh">
       <div className="container hidden gap-8 pt-14 md:grid lg:grid-cols-[35.8rem_1fr]">
         <div className="flex gap-7">
           <div className="flex w-[6.25rem] flex-col gap-4">

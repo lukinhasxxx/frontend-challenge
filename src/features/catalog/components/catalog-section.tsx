@@ -90,9 +90,10 @@ export function CatalogSection({ list, featured }: CatalogSectionProps) {
                 className={cn(gridClass, list.isPlaceholderData && 'opacity-60 transition-opacity')}
                 aria-busy={list.isFetching}
               >
-                {data.items.map((nft) => (
+                {data.items.map((nft, index) => (
                   <li key={nft.id}>
-                    <CatalogNftCard nft={nft} />
+                    {/* Primeira linha do grid mobile (2 colunas): candidata a LCP. */}
+                    <CatalogNftCard nft={nft} priority={index < 2} />
                   </li>
                 ))}
               </ul>

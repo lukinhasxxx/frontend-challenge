@@ -4,15 +4,8 @@ dist
 .env.local
 playwright-report
 test-results
-reports/lighthouse/*.json
 .DS_Store
 .tanstack
-
-# Planejamento e IA (locais, fora do repositório)
-CLAUDE.md
-SPEC.md
-PROGRESS.md
-.claude/
 .figma
 
 # Utilitários locais de extração do Figma (dependem de token e arquivo privados)

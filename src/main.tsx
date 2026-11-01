@@ -1,4 +1,5 @@
 import '@/styles/globals.css'
+import { env } from '@/app/env'
 
 /**
  * Ordem de boot importa: o MSW só aplica o patch de `WebSocket` dentro de
@@ -7,11 +8,11 @@ import '@/styles/globals.css'
  * carregado dinamicamente só depois que os mocks estão ativos.
  */
 async function bootstrap() {
-  if (import.meta.env.VITE_ENABLE_MOCKS === 'true') {
+  if (env.mocksEnabled) {
     const { startMocking } = await import('@/mocks/browser')
     await startMocking()
-    const { mountMockDevtools } = await import('@/mocks/devtools/mount')
-    mountMockDevtools()
+    // Painel Mock em paralelo: não atrasa a primeira renderização do app.
+    void import('@/mocks/devtools/mount').then(({ mountMockDevtools }) => mountMockDevtools())
   }
   const { renderApp } = await import('@/app/render')
   renderApp(document.getElementById('root')!)
