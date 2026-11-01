@@ -1,7 +1,7 @@
 import { useCallback, useId, useState, type ReactNode } from 'react'
 import { FlaskConical, X } from 'lucide-react'
-import type { Edition, RealtimeEvent } from '@/api/contracts'
-import { authToken } from '@/api/session-storage'
+import type { Cart, Edition, RealtimeEvent } from '@/api/contracts'
+import { authToken, getGuestId } from '@/api/session-storage'
 import { Button } from '@/components/ui/button'
 import { FIXTURE_PASSWORD, FIXTURE_USERS } from '../fixtures/accounts'
 import { getScenario, isScenario, SCENARIO_HEADER, setScenario, type Scenario } from '../scenarios'
@@ -27,6 +27,11 @@ async function mockFetch(url: string, init: RequestInit = {}) {
   return response.status === 204 ? null : ((await response.json()) as unknown)
 }
 
+/** Mesma identidade que o app usa (visitante ou usuário logado). */
+function sessionHeaders(token = authToken.get()): Record<string, string> {
+  return { 'X-Guest-Id': getGuestId(), ...(token && { Authorization: `Bearer ${token}` }) }
+}
+
 const inputClass =
   'h-8 w-full rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-2 focus-visible:outline-ring'
 
@@ -43,14 +48,20 @@ export function MockDevtools() {
   const panelId = useId()
   const [open, setOpen] = useState(false)
   const [state, setState] = useState<MockState | null>(null)
+  const [cartEditionIds, setCartEditionIds] = useState<string[]>([])
   const [feedback, setFeedback] = useState('')
-  const [nftId, setNftId] = useState('nft-01')
+  const [nftId, setNftId] = useState('')
   const [editionId, setEditionId] = useState('')
   const [price, setPrice] = useState('')
   const [available, setAvailable] = useState('')
 
   const refresh = useCallback(async () => {
-    setState((await mockFetch('/__mock/state')) as MockState)
+    const [mockState, cart] = await Promise.all([
+      mockFetch('/__mock/state') as Promise<MockState>,
+      (mockFetch('/api/cart', { headers: sessionHeaders() }) as Promise<Cart>).catch(() => null),
+    ])
+    setState(mockState)
+    setCartEditionIds(cart?.lines.map((line) => line.editionId) ?? [])
   }, [])
 
   function toggle() {
@@ -58,8 +69,12 @@ export function MockDevtools() {
     setOpen(!open)
   }
 
-  const selectedNft = state?.nfts.find((n) => n.id === nftId)
-  const selectedEdition = selectedNft?.editions.find((e) => e.id === editionId) ?? selectedNft?.editions[0]
+  // Sem escolha manual: começa pelo NFT/edição que está no carrinho (teste de tempo real no carrinho).
+  const inCart = (edition: Edition) => cartEditionIds.includes(edition.id)
+  const selectedNft =
+    state?.nfts.find((n) => n.id === nftId) ?? state?.nfts.find((n) => n.editions.some(inCart)) ?? state?.nfts[0]
+  const selectedEdition =
+    selectedNft?.editions.find((e) => e.id === editionId) ?? selectedNft?.editions.find(inCart) ?? selectedNft?.editions[0]
 
   async function run(label: string, action: () => Promise<unknown>) {
     try {
@@ -77,6 +92,8 @@ export function MockDevtools() {
       body: JSON.stringify({ email, password: FIXTURE_PASSWORD }),
     })) as { token: string }
     authToken.set(session.token)
+    // Igual ao login pela tela: itens do visitante entram no carrinho da conta.
+    await mockFetch('/api/cart/merge', { method: 'POST', headers: sessionHeaders(session.token) })
     location.reload()
   }
 
@@ -150,10 +167,15 @@ export function MockDevtools() {
           </Section>
 
           <Section title="Tempo real — nft.updated">
-            <select aria-label="NFT" className={inputClass} value={nftId} onChange={(e) => (setNftId(e.target.value), setEditionId(''))}>
+            <select
+              aria-label="NFT"
+              className={inputClass}
+              value={selectedNft?.id ?? ''}
+              onChange={(e) => (setNftId(e.target.value), setEditionId(''))}
+            >
               {state?.nfts.map((n) => (
                 <option key={n.id} value={n.id}>
-                  {n.id} · {n.name} (v{n.version})
+                  {n.id} · {n.name} (v{n.version}){n.editions.some(inCart) && ' · no carrinho'}
                 </option>
               ))}
             </select>
@@ -166,6 +188,7 @@ export function MockDevtools() {
               {selectedNft?.editions.map((e) => (
                 <option key={e.id} value={e.id}>
                   {e.label} — {e.priceEth} ETH · {e.available}/{e.supply}
+                  {inCart(e) && ' · no carrinho'}
                 </option>
               ))}
             </select>
@@ -181,10 +204,10 @@ export function MockDevtools() {
             </div>
             <Button
               size="sm"
-              disabled={!selectedEdition || (!price && !available)}
+              disabled={!selectedNft || !selectedEdition || (!price && !available)}
               onClick={() =>
                 void run('NFT alterado e evento emitido', async () => {
-                  await mockFetch(`/__mock/nfts/${nftId}`, {
+                  await mockFetch(`/__mock/nfts/${selectedNft?.id}`, {
                     method: 'POST',
                     body: JSON.stringify({
                       editionId: selectedEdition?.id,
