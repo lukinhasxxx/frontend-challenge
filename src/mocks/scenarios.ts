@@ -19,6 +19,7 @@ export const SCENARIOS = {
   'price-changed': 'Preços mudam ao revalidar a cotação no checkout.',
   'sold-out': 'Edições esgotam ao revalidar a cotação no checkout.',
   'payment-declined': 'Pagamento é recusado após criação do pedido.',
+  'payment-pending': 'Pagamento fica pendente até ser resolvido pelo painel Mock (teste de queda/reconexão).',
   'wallet-rejected': 'A carteira recusa a conexão no pagamento.',
 } as const
 

@@ -1,9 +1,10 @@
-import type { Nft, NftUpdatedEvent, RealtimeEvent } from '@/api/contracts'
+import type { Nft, NftUpdatedEvent, Order, OrderUpdatedEvent, RealtimeEvent } from '@/api/contracts'
 import { broadcast } from './socket'
 
 let lastEvent: RealtimeEvent | null = null
-/** Snapshot anterior de cada NFT alterado, para simular eventos antigos. */
+/** Snapshot anterior de cada NFT/pedido alterado, para simular eventos antigos. */
 const previousNfts = new Map<string, Nft>()
+const previousOrders = new Map<string, { order: Order; userId: string }>()
 
 function nftUpdatedEvent(nft: Nft): NftUpdatedEvent {
   return {
@@ -13,6 +14,18 @@ function nftUpdatedEvent(nft: Nft): NftUpdatedEvent {
     version: nft.version,
     occurredAt: new Date().toISOString(),
     payload: nft,
+  }
+}
+
+function orderUpdatedEvent(order: Order, userId: string): OrderUpdatedEvent {
+  return {
+    eventId: crypto.randomUUID(),
+    type: 'order.updated',
+    resourceId: order.id,
+    version: order.version,
+    occurredAt: new Date().toISOString(),
+    userId,
+    payload: order,
   }
 }
 
@@ -27,6 +40,12 @@ export function publishNftUpdated(previous: Nft, next: Nft) {
   publish(nftUpdatedEvent(next))
 }
 
+/** Chamado quando o status de um pedido muda (só o dono recebe). */
+export function publishOrderUpdated(previous: Order, next: Order, userId: string) {
+  previousOrders.set(next.id, { order: previous, userId })
+  publish(orderUpdatedEvent(next, userId))
+}
+
 export function getLastEvent() {
   return lastEvent
 }
@@ -38,17 +57,23 @@ export function replayLastEvent() {
   return lastEvent
 }
 
-/** Emite um evento novo (eventId inédito) com a versão ANTERIOR do último NFT alterado. */
-export function emitStaleNftEvent() {
-  if (lastEvent?.type !== 'nft.updated') return null
-  const previous = previousNfts.get(lastEvent.resourceId)
-  if (!previous) return null
-  const stale = nftUpdatedEvent(previous)
-  broadcast(stale)
+/** Emite um evento novo (eventId inédito) com a versão ANTERIOR do último recurso alterado. */
+export function emitStaleEvent() {
+  if (!lastEvent) return null
+  let stale: RealtimeEvent | null = null
+  if (lastEvent.type === 'nft.updated') {
+    const previous = previousNfts.get(lastEvent.resourceId)
+    if (previous) stale = nftUpdatedEvent(previous)
+  } else {
+    const previous = previousOrders.get(lastEvent.resourceId)
+    if (previous) stale = orderUpdatedEvent(previous.order, previous.userId)
+  }
+  if (stale) broadcast(stale)
   return stale
 }
 
 export function resetEvents() {
   lastEvent = null
   previousNfts.clear()
+  previousOrders.clear()
 }

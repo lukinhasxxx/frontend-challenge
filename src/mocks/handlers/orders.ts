@@ -9,6 +9,7 @@ import { updateEdition } from '../catalog'
 import type { DbOrder } from '../db/schema'
 import { db } from '../db/store'
 import { apiError, IDEMPOTENT_REPLAY_HEADER, parseBody, withScenario } from '../http'
+import { scheduleSettlement, SETTLE_DELAY_MS, settleIfDue, toOrder } from '../orders'
 import { getScenario, type Scenario } from '../scenarios'
 
 const createOrderSchema = z.object({
@@ -61,10 +62,6 @@ async function hashBody(body: unknown) {
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-function toOrder({ userId: _userId, idempotencyKey: _key, requestHash: _hash, ...order }: DbOrder): Order {
-  return order
-}
-
 export const orderHandlers = [
   /**
    * Criação idempotente: a mesma `Idempotency-Key` com o mesmo corpo devolve o mesmo pedido
@@ -87,9 +84,10 @@ export const orderHandlers = [
         return HttpResponse.json<Order>(toOrder(existing), { status: 200, headers: { [IDEMPOTENT_REPLAY_HEADER]: 'true' } })
       }
 
+      const scenario = getScenario(request)
       const owner = `user:${user.id}` as const
       const reviewed = db.read().quotes.find((q) => q.id === body.quoteId && q.ownerKey === owner)
-      if (reviewed) applyCheckoutScenario(getScenario(request), reviewed)
+      if (reviewed) applyCheckoutScenario(scenario, reviewed)
 
       const state = db.read()
       const current = buildQuote(state, owner)
@@ -110,7 +108,11 @@ export const orderHandlers = [
       const order: DbOrder = {
         id: `ord-${crypto.randomUUID().slice(0, 8)}`,
         status: 'pending',
-        lines: current.lines,
+        // Snapshot: nome, imagem e preço do momento; mudanças no catálogo não alteram o recibo.
+        lines: current.lines.map((line) => {
+          const nft = state.nfts.find((n) => n.id === line.nftId)
+          return { ...line, image: nft?.thumbnail ?? '', tokenId: nft?.tokenId ?? '' }
+        }),
         coupon: current.coupon,
         subtotalEth: current.subtotalEth,
         discountEth: current.discountEth,
@@ -129,10 +131,13 @@ export const orderHandlers = [
         userId: user.id,
         idempotencyKey: key,
         requestHash,
+        settleAs: scenario === 'payment-pending' ? null : scenario === 'payment-declined' ? 'declined' : 'confirmed',
+        settleAt: new Date(Date.now() + SETTLE_DELAY_MS).toISOString(),
       }
       db.write((draft) => {
         draft.orders.push(order)
       })
+      scheduleSettlement(order)
       return HttpResponse.json<Order>(toOrder(order), { status: 201 })
     }),
   ),
@@ -141,9 +146,10 @@ export const orderHandlers = [
     '/api/orders/:orderId',
     withScenario(({ request, params }) => {
       const { user } = requireSession(request)
-      const order = db.read().orders.find((o) => o.id === params.orderId && o.userId === user.id)
-      if (!order) throw apiError(404, 'NOT_FOUND', 'Pedido não encontrado.')
-      return HttpResponse.json<Order>(toOrder(order))
+      const found = db.read().orders.find((o) => o.id === params.orderId && o.userId === user.id)
+      if (!found) throw apiError(404, 'NOT_FOUND', 'Pedido não encontrado.')
+      settleIfDue(found)
+      return HttpResponse.json<Order>(toOrder(db.read().orders.find((o) => o.id === found.id)!))
     }),
   ),
 ]
