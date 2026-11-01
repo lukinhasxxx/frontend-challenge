@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouter } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, Minus, Plus, Trash2 } from 'lucide-react'
-import type { Cart, CartLine, Quote, QuoteIssue } from '@/api/contracts'
+import type { Cart, CartLine, Quote } from '@/api/contracts'
 import { Button } from '@/components/ui/button'
 import { EthPrice } from '@/components/ui/eth-price'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -9,10 +9,10 @@ import { sessionQueryOptions } from '@/features/auth/api'
 import { nftListQueryOptions } from '@/features/catalog/api'
 import { RelatedNfts } from '@/features/nft-detail/components/related-nfts'
 import { displayEth } from '@/lib/eth'
-import { notifyInDevelopment } from '@/lib/in-development'
 import { DESKTOP_QUERY, useMediaQuery } from '@/lib/use-media-query'
 import { cn } from '@/lib/utils'
-import { cartQueryOptions, quoteQueryOptions, useAcknowledgeCart, useRemoveCartItem, useUpdateCartItem } from '../api'
+import { cartQueryOptions, quoteQueryOptions, useRemoveCartItem, useUpdateCartItem } from '../api'
+import { CartIssues } from './cart-issues'
 import { CouponForm } from './coupon-form'
 
 type Variant = 'desktop' | 'mobile'
@@ -168,43 +168,6 @@ function MobileLines({ lines }: { lines: CartLine[] }) {
   )
 }
 
-/* ---------- Avisos de tempo real (vindos da cotação) ---------- */
-
-function issueText(issue: QuoteIssue, lines: CartLine[]) {
-  const line = lines.find((l) => l.editionId === issue.editionId)
-  const item = line ? `${line.name} (${line.editionLabel})` : 'Um item'
-  switch (issue.type) {
-    case 'price-changed':
-      return `O preço de ${item} mudou de ${displayEth(issue.previousPriceEth)} para ${displayEth(issue.currentPriceEth)} ETH.`
-    case 'quantity-reduced':
-      return `${item}: restam só ${issue.available}. A quantidade será ajustada.`
-    case 'sold-out':
-      return `${item} esgotou. Remova-o para continuar.`
-  }
-}
-
-function CartIssues({ quote, lines }: { quote: Quote; lines: CartLine[] }) {
-  const acknowledge = useAcknowledgeCart()
-  if (!quote.issues.length) return null
-  const canAcknowledge = quote.issues.some((issue) => issue.type !== 'sold-out')
-
-  return (
-    <div role="alert" className="flex flex-col gap-3 rounded-md border border-primary bg-surface-raised p-4 text-body-sm">
-      <p className="font-bold text-accent-foreground">Seu carrinho mudou desde que você adicionou os itens:</p>
-      <ul className="flex list-disc flex-col gap-1 pl-5">
-        {quote.issues.map((issue) => (
-          <li key={`${issue.type}-${issue.editionId}`}>{issueText(issue, lines)}</li>
-        ))}
-      </ul>
-      {canAcknowledge && (
-        <Button size="sm" className="w-fit font-bold" disabled={acknowledge.isPending} onClick={() => acknowledge.mutate()}>
-          Entendi, usar valores atuais
-        </Button>
-      )}
-    </div>
-  )
-}
-
 /* ---------- Resumo ---------- */
 
 type SummaryRowProps = { label: string; value: string; loading: boolean; emphasis?: boolean; small?: boolean }
@@ -232,13 +195,13 @@ function CartSummary({ cart, quote, quoteLoading, variant }: { cart: Cart; quote
   const blocked = !quote || quote.issues.length > 0 || quote.lines.length === 0
   const desktop = variant === 'desktop'
 
-  // Fase 7 (pagamento): por ora exige login e avisa que o checkout está em desenvolvimento.
+  // Pagamento exige login: o visitante entra (o carrinho vem junto) e segue para /pagamento.
   function checkout() {
     if (!session) {
-      void navigate({ to: '.', search: (prev) => ({ ...prev, auth: 'login' }) })
+      void navigate({ to: '.', search: (prev) => ({ ...prev, auth: 'login', redirect: '/pagamento' }) })
       return
     }
-    notifyInDevelopment('Finalizar compra')
+    void navigate({ to: '/pagamento' })
   }
 
   return (

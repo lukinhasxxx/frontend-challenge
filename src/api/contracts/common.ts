@@ -19,6 +19,9 @@ export type ErrorCode =
   | 'COUPON_EXPIRED'
   | 'IDEMPOTENCY_CONFLICT'
   | 'PAYMENT_DECLINED'
+  | 'WALLET_CONFLICT'
+  | 'WALLET_NOT_CONNECTED'
+  | 'WALLET_CONNECTION_REJECTED'
   | 'INTERNAL_ERROR'
 
 /** Corpo de toda resposta de erro da API. */

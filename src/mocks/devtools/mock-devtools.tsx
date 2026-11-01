@@ -3,6 +3,7 @@ import { FlaskConical, X } from 'lucide-react'
 import type { Cart, Edition, RealtimeEvent } from '@/api/contracts'
 import { authToken, getGuestId } from '@/api/session-storage'
 import { Button } from '@/components/ui/button'
+import { CHECKOUT_ATTEMPT_STORAGE_KEY, type CheckoutAttempt } from '@/features/checkout/attempt'
 import { FIXTURE_PASSWORD, FIXTURE_USERS } from '../fixtures/accounts'
 import { getScenario, isScenario, SCENARIO_HEADER, setScenario, type Scenario } from '../scenarios'
 
@@ -102,6 +103,19 @@ export function MockDevtools() {
     await mockFetch('/api/auth/logout', { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {} })
     authToken.clear()
     location.reload()
+  }
+
+  /** Repete a última tentativa de compra da aba: mesma chave; `changed` altera o corpo (espera 409). */
+  async function replayOrder(changed: boolean) {
+    const attempt = JSON.parse(sessionStorage.getItem(CHECKOUT_ATTEMPT_STORAGE_KEY) ?? 'null') as CheckoutAttempt | null
+    if (!attempt) throw new Error('Nenhuma tentativa de compra nesta aba.')
+    const body = changed ? { ...attempt.body, buyer: { ...attempt.body.buyer, note: `${attempt.body.buyer.note} (alterado)` } } : attempt.body
+    const order = (await mockFetch('/api/orders', {
+      method: 'POST',
+      headers: { ...sessionHeaders(), 'Idempotency-Key': attempt.key },
+      body: JSON.stringify(body),
+    })) as { id: string }
+    setFeedback(`✔ Mesma chave → mesmo pedido: ${order.id}`)
   }
 
   async function resetDb() {
@@ -228,6 +242,22 @@ export function MockDevtools() {
               </Button>
               <Button size="sm" variant="outline" onClick={() => void run('Evento com versão antiga emitido', () => mockFetch('/__mock/events/stale', { method: 'POST' }))}>
                 Emitir evento antigo
+              </Button>
+            </div>
+          </Section>
+
+          <Section title="Pedidos — idempotência">
+            <p className="text-xs text-muted-foreground">Usa a última tentativa de compra desta aba (Idempotency-Key).</p>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={() => void replayOrder(false).catch((e: Error) => setFeedback(`✖ ${e.message}`))}>
+                Reenviar mesma tentativa
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void run('Mesma chave com outro conteúdo', () => replayOrder(true))}
+              >
+                Mesma chave, outro conteúdo
               </Button>
             </div>
           </Section>

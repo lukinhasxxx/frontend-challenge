@@ -1,7 +1,7 @@
-import type { Nft, Order, Quote, User, Wallet } from '@/api/contracts'
+import type { Nft, Order, Quote, User, Wallet, WalletConnection } from '@/api/contracts'
 
 /** Incrementar ao mudar o formato: força um novo seed em quem tem dados antigos. */
-export const DB_SCHEMA_VERSION = 6
+export const DB_SCHEMA_VERSION = 7
 
 export type DbUser = User & {
   /** SHA-256 de `${salt}:${senha}` — nunca guardamos a senha em claro. */
@@ -54,6 +54,8 @@ export type DbState = {
   cartCoupons: Record<CartOwnerKey, string>
   coupons: DbCoupon[]
   wallets: DbWallet[]
+  /** Conexão simulada com a extensão, por usuário (exigida para criar pedido). */
+  walletConnections: Record<string, WalletConnection>
   quotes: DbQuote[]
   orders: DbOrder[]
 }
