@@ -11,6 +11,7 @@ export function createSeed(): DbState {
     nfts: createNftFixtures(),
     favorites: FIXTURE_FAVORITES,
     carts: {},
+    cartCoupons: {},
     coupons: FIXTURE_COUPONS,
     wallets: FIXTURE_WALLETS,
     quotes: [],

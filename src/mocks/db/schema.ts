@@ -1,7 +1,7 @@
 import type { Nft, Order, Quote, User, Wallet } from '@/api/contracts'
 
 /** Incrementar ao mudar o formato: força um novo seed em quem tem dados antigos. */
-export const DB_SCHEMA_VERSION = 5
+export const DB_SCHEMA_VERSION = 6
 
 export type DbUser = User & {
   /** SHA-256 de `${salt}:${senha}` — nunca guardamos a senha em claro. */
@@ -19,6 +19,8 @@ export type DbCartItem = {
   nftId: string
   editionId: string
   quantity: number
+  /** Preço que o dono viu ao adicionar/confirmar: base dos avisos de "preço alterado". */
+  priceSeenEth: string
 }
 
 export type DbCoupon = {
@@ -48,6 +50,8 @@ export type DbState = {
   nfts: Nft[]
   favorites: { userId: string; nftId: string }[]
   carts: Record<CartOwnerKey, DbCartItem[]>
+  /** Cupom aplicado ao carrinho de cada dono (sobrevive a refresh). */
+  cartCoupons: Record<CartOwnerKey, string>
   coupons: DbCoupon[]
   wallets: DbWallet[]
   quotes: DbQuote[]
