@@ -17,7 +17,7 @@ const navLinkClass =
 export function SiteHeader() {
   const session = useQuery(sessionQueryOptions)
   // Figma: no detalhe do NFT e no carrinho o item ativo do menu é "Mercado".
-  const onMarket = useMatches({ select: (matches) => matches.some((m) => m.routeId === '/nft/$nftId' || m.routeId === '/carrinho') })
+  const onMarket = useMatches({ select: (matches) => matches.some((m) => m.routeId === '/nft/$nftId' || m.routeId === '/carrinho' || m.routeId === '/pagamento') })
   const cart = useQuery(cartQueryOptions)
   const cartCount = cart.data?.itemCount ?? 0
 
