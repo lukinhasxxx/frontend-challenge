@@ -25,7 +25,7 @@ async function snapshot(page: Page, name: string) {
     [...document.images].filter((img) => img.getClientRects().length > 0).every((img) => img.complete && img.naturalWidth > 0),
   )
   await page.addStyleTag({ content: HIDE_DEV_TOOLS })
-  await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true })
+  await expect(page).toHaveScreenshot(`${name}-${test.info().project.name}.png`, { fullPage: true })
 }
 
 /** Violet Nomad #314 (1/50) no carrinho, como no fluxo real. */
