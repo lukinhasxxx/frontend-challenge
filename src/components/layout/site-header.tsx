@@ -62,7 +62,11 @@ export function SiteHeader() {
             {session.data ? (
               <Button asChild size="sm" variant="outline" className="h-[35px] max-w-36">
                 <Link to="/perfil">
-                  <UserRound aria-hidden="true" />
+                  {session.data.user.avatarUrl ? (
+                    <img src={session.data.user.avatarUrl} alt="" width={20} height={20} className="size-5 rounded-full object-cover" />
+                  ) : (
+                    <UserRound aria-hidden="true" />
+                  )}
                   <span className="truncate">{session.data.user.name.split(' ')[0]}</span>
                 </Link>
               </Button>

@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { AuthResponse, EmailAvailabilityResponse, SessionResponse } from '@/api/contracts'
 import { displayNameSchema, emailSchema, passwordSchema } from '@/lib/validation'
 import { createSalt, createSession, hashPassword, readBearerToken, requireSession, toPublicUser } from '../auth'
+import type { DbUser } from '../db/schema'
 import { db } from '../db/store'
 import { apiError, parseBody, withScenario } from '../http'
 
@@ -37,10 +38,16 @@ export const authHandlers = [
       }
 
       const salt = createSalt()
-      const user = {
-        id: `usr-${crypto.randomUUID().slice(0, 8)}`,
+      const id = `usr-${crypto.randomUUID().slice(0, 8)}`
+      const user: DbUser = {
+        id,
         name: body.name,
+        // Nome de usuário inicial único (editável no perfil).
+        username: `${body.email.split('@')[0]!.replace(/[^a-zA-Z0-9_.]/g, '').slice(0, 20) || 'colecionador'}.${id.slice(4)}`,
         email: body.email.toLowerCase(),
+        ensName: '',
+        ensSuffix: '.eth',
+        walletAlias: '',
         avatarUrl: null,
         bio: '',
         createdAt: new Date().toISOString(),

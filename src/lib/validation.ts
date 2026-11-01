@@ -83,3 +83,27 @@ export const buyerProfileSchema = z.object({
   secondaryAddress: secondaryAddressSchema,
   note: z.string().trim().max(500, 'Use no máximo 500 caracteres.'),
 })
+
+/* ---------- Perfil do colecionador ---------- */
+
+/** Avatar já reduzido no cliente (256px); a API recusa outros formatos ou imagens grandes. */
+export const AVATAR_MAX_DATA_URL_LENGTH = 400_000
+
+export const avatarDataUrlSchema = z
+  .string()
+  .regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/, 'Use uma imagem PNG, JPG ou WebP.')
+  .max(AVATAR_MAX_DATA_URL_LENGTH, 'A imagem é grande demais.')
+
+export const profileSchema = z.object({
+  name: personNameSchema('o nome de exibição'),
+  username: usernameSchema,
+  email: emailSchema,
+  ensName: ensNameSchema,
+  ensSuffix: ensSuffixSchema,
+  walletAlias: personNameSchema('o apelido da carteira'),
+})
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Informe a senha atual.'),
+  newPassword: passwordSchema,
+})
