@@ -1,13 +1,19 @@
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import { DESKTOP_QUERY, useMediaQuery } from '@/lib/use-media-query'
 
+/**
+ * Devtools do Router e do Query só a partir de 768px: no mobile todos os cantos são usados
+ * pelo layout do Figma (voltar, favoritar, barras fixas) e os botões cobririam a interface.
+ * O painel "Mock" continua disponível em qualquer largura.
+ */
 export default function Devtools() {
-  // No mobile a barra de abas ocupa a base da tela: botões vão para o topo.
-  const isMobile = window.matchMedia('(max-width: 767px)').matches
+  const desktop = useMediaQuery(DESKTOP_QUERY)
+  if (!desktop) return null
   return (
     <>
-      <ReactQueryDevtools buttonPosition={isMobile ? 'top-right' : 'bottom-right'} />
-      <TanStackRouterDevtools position={isMobile ? 'top-left' : 'bottom-left'} />
+      <ReactQueryDevtools buttonPosition="bottom-right" />
+      <TanStackRouterDevtools position="bottom-left" />
     </>
   )
 }
