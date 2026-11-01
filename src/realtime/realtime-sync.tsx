@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import type { NftUpdatedEvent } from '@/api/contracts'
+import type { NftUpdatedEvent, OrderUpdatedEvent } from '@/api/contracts'
 import { cartKeys, revalidateCartFor } from '@/features/cart/api'
 import { nftKeys } from '@/features/catalog/api'
+import { orderKeys } from '@/features/checkout/api'
 import { displayEth } from '@/lib/eth'
 import { applyNftEvent } from './apply-nft-event'
+import { applyOrderEvent } from './apply-order-event'
 import { getSocket } from './socket'
 
 function describe(event: NftUpdatedEvent) {
@@ -34,6 +36,7 @@ export function RealtimeSync() {
       if (connectedBefore) {
         void queryClient.invalidateQueries({ queryKey: nftKeys.all })
         void queryClient.invalidateQueries({ queryKey: cartKeys.all })
+        void queryClient.invalidateQueries({ queryKey: orderKeys.all })
       }
       connectedBefore = true
     }
@@ -48,15 +51,31 @@ export function RealtimeSync() {
       toast.info(message, { id: `nft-${event.resourceId}` })
     }
 
+    const onOrderUpdated = (event: OrderUpdatedEvent) => {
+      if (applyOrderEvent(queryClient, event) !== 'applied') return
+      const order = event.payload
+      if (order.status === 'confirmed') {
+        // O servidor tirou do carrinho só o que foi comprado.
+        void queryClient.invalidateQueries({ queryKey: cartKeys.all })
+        setAnnouncement(`Pagamento do pedido ${order.id} confirmado.`)
+        toast.success('Pagamento confirmado.', { id: `order-${order.id}` })
+      } else if (order.status === 'declined') {
+        setAnnouncement(`Pagamento do pedido ${order.id} recusado. Os itens continuam no carrinho.`)
+        toast.error('Pagamento recusado.', { id: `order-${order.id}` })
+      }
+    }
+
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
     socket.on('nft.updated', onNftUpdated)
+    socket.on('order.updated', onOrderUpdated)
     socket.connect()
 
     return () => {
       socket.off('connect', onConnect)
       socket.off('disconnect', onDisconnect)
       socket.off('nft.updated', onNftUpdated)
+      socket.off('order.updated', onOrderUpdated)
       socket.disconnect()
     }
   }, [queryClient])

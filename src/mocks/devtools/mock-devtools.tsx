@@ -12,6 +12,7 @@ type MockState = {
   scenarios: Record<Scenario, string>
   socket: { connectedClients: number; refusingUntil: string | null }
   lastEvent: RealtimeEvent | null
+  pendingOrders: { id: string; totalEth: string }[]
   nfts: { id: string; name: string; version: number; editions: Edition[] }[]
 }
 
@@ -246,8 +247,33 @@ export function MockDevtools() {
             </div>
           </Section>
 
+          <Section title="Pedidos — pagamento">
+            <p className="text-xs text-muted-foreground">
+              {state?.pendingOrders.length
+                ? `Pendente mais recente: ${state.pendingOrders.at(-1)!.id}`
+                : 'Nenhum pedido pendente (use o cenário payment-pending para segurar o pagamento).'}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {(['confirmed', 'declined'] as const).map((status) => (
+                <Button
+                  key={status}
+                  size="sm"
+                  variant="outline"
+                  disabled={!state?.pendingOrders.length}
+                  onClick={() =>
+                    void run(status === 'confirmed' ? 'Pagamento confirmado (order.updated)' : 'Pagamento recusado (order.updated)', () =>
+                      mockFetch('/__mock/orders/settle', { method: 'POST', body: JSON.stringify({ status }) }),
+                    )
+                  }
+                >
+                  {status === 'confirmed' ? 'Confirmar pendente' : 'Recusar pendente'}
+                </Button>
+              ))}
+            </div>
+          </Section>
+
           <Section title="Pedidos — idempotência">
-            <p className="text-xs text-muted-foreground">Usa a última tentativa de compra desta aba (Idempotency-Key).</p>
+            <p className="text-xs text-muted-foreground">Usa a tentativa sem resposta desta aba (ex.: após o cenário timeout).</p>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" onClick={() => void replayOrder(false).catch((e: Error) => setFeedback(`✖ ${e.message}`))}>
                 Reenviar mesma tentativa

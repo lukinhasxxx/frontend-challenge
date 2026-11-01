@@ -58,12 +58,12 @@ export function useSubmitOrder() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ userId, body }: SubmitVariables) => {
-      const pending = checkoutAttempt.read(userId)
-      const attempt = pending && !pending.orderId ? pending : { userId, key: crypto.randomUUID(), body, orderId: null }
+      const attempt = checkoutAttempt.read(userId) ?? { userId, key: crypto.randomUUID(), body }
       checkoutAttempt.save(attempt)
       try {
         const order = (await api.post<Order>('/orders', attempt.body, { headers: { 'Idempotency-Key': attempt.key } })).data
-        checkoutAttempt.save({ ...attempt, orderId: order.id })
+        // Resposta recebida: a tentativa está resolvida (o pedido é acompanhado pelo id).
+        checkoutAttempt.clear()
         return order
       } catch (error) {
         // Resposta conclusiva (409/422...): nada foi criado, a próxima tentativa usa chave nova.

@@ -1,5 +1,5 @@
 import { useReducer, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { Link, useRouter } from '@tanstack/react-router'
+import { Link, useNavigate, useRouter } from '@tanstack/react-router'
 import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -29,10 +29,9 @@ import { ChoiceIndicator, figmaInputClass, LabeledField, NativeSelect } from '@/
 import { WalletCard } from '@/features/wallets/components/wallet-card'
 import { NETWORK_CARD_LABEL, NETWORK_LABEL, PROVIDER_LABEL } from '@/features/wallets/labels'
 import { displayEth } from '@/lib/eth'
-import { notifyInDevelopment } from '@/lib/in-development'
 import { DESKTOP_QUERY, useMediaQuery } from '@/lib/use-media-query'
 import { cn } from '@/lib/utils'
-import { connectionQueryOptions, isUnresolvedFailure, orderQueryOptions, useConnectWallet, useDisconnectWallet, useSubmitOrder } from '../api'
+import { connectionQueryOptions, isUnresolvedFailure, useConnectWallet, useDisconnectWallet, useSubmitOrder } from '../api'
 import { checkoutAttempt, type CheckoutAttempt } from '../attempt'
 import { buyerFrom, paymentDefaults, paymentSchema, type PaymentInput, type PaymentValues } from '../schemas'
 import { ReviewDialog, type ReviewState } from './review-dialog'
@@ -393,6 +392,7 @@ type CheckoutProps = {
 
 function Checkout({ variant, user, wallet, wallets, cart, quote, connection, initialNetwork, attempt, onSelectWallet, onAttemptChange }: CheckoutProps) {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const desktop = variant === 'desktop'
   const form = useForm<PaymentInput, unknown, PaymentValues>({
     resolver: zodResolver(paymentSchema),
@@ -415,7 +415,7 @@ function Checkout({ variant, user, wallet, wallets, cart, quote, connection, ini
   const connected = Boolean(
     connection && connection.walletId === wallet.id && connection.provider === provider && connection.network === network,
   )
-  const unresolved = Boolean(attempt && !attempt.orderId)
+  const unresolved = Boolean(attempt)
   const quoteData = quote.data
   const blocked = !quoteData || quoteData.issues.length > 0 || quoteData.lines.length === 0 || quote.isFetching
 
@@ -449,7 +449,8 @@ function Checkout({ variant, user, wallet, wallets, cart, quote, connection, ini
           sendingRef.current = false
           onAttemptChange()
         },
-        onSuccess: () => setReview(null),
+        // Pedido criado (pendente): o resultado do pagamento é acompanhado na página do pedido.
+        onSuccess: (order) => void navigate({ to: '/pedidos/$orderId', params: { orderId: order.id } }),
         onError: (error) => {
           if (isUnresolvedFailure(error)) {
             setReviewError(UNRESOLVED_MESSAGE)
@@ -614,32 +615,6 @@ function Checkout({ variant, user, wallet, wallets, cart, quote, connection, ini
   )
 }
 
-/* ---------- Pedido enviado ---------- */
-
-function OrderSent({ orderId, onNewPurchase }: { orderId: string; onNewPurchase: () => void }) {
-  const order = useQuery(orderQueryOptions(orderId))
-  return (
-    <Notice>
-      <p className="text-base font-bold">Pedido {orderId} enviado.</p>
-      {order.data && (
-        <p>
-          Total de {displayEth(order.data.totalEth)} ETH na rede {NETWORK_LABEL[order.data.network]} · Situação:{' '}
-          {order.data.status === 'pending' ? 'aguardando confirmação do pagamento' : order.data.status}.
-        </p>
-      )}
-      <p className="text-muted-foreground">Os itens continuam no carrinho até o pagamento ser confirmado.</p>
-      <div className="flex flex-wrap gap-3">
-        <Button size="sm" variant="outline" onClick={() => notifyInDevelopment('Acompanhar pedido')}>
-          Acompanhar pedido
-        </Button>
-        <Button size="sm" variant="ghost" onClick={onNewPurchase}>
-          Fazer nova compra
-        </Button>
-      </div>
-    </Notice>
-  )
-}
-
 /* ---------- Página ---------- */
 
 /** Figma "Pagamento": formulário + resumo + carteira e rede (desktop) e carteiras + opções (mobile). */
@@ -659,17 +634,7 @@ export function PaymentPage() {
   const attempt = checkoutAttempt.read(user.id)
 
   let body: ReactNode
-  if (attempt?.orderId) {
-    body = (
-      <OrderSent
-        orderId={attempt.orderId}
-        onNewPurchase={() => {
-          checkoutAttempt.clear()
-          refreshAttempt()
-        }}
-      />
-    )
-  } else if (wallets.isPending || cart.isPending) {
+  if (wallets.isPending || cart.isPending) {
     body = (
       <div role="status" aria-label="Carregando pagamento" className="grid gap-8 lg:grid-cols-[1fr_25.3125rem]">
         <Skeleton className="h-96 w-full" />

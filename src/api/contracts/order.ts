@@ -31,11 +31,14 @@ export type CreateOrderRequest = {
   buyer: BuyerProfile
 }
 
+/** Item do recibo: copia nome, imagem e preço do momento da compra. */
+export type OrderLine = QuoteLine & { image: string; tokenId: string }
+
 /** Recibo: snapshot imutável no momento da criação do pedido. */
 export type Order = {
   id: string
   status: OrderStatus
-  lines: QuoteLine[]
+  lines: OrderLine[]
   coupon: QuoteCoupon | null
   subtotalEth: EthAmount
   discountEth: EthAmount
