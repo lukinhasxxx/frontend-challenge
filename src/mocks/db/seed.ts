@@ -14,6 +14,7 @@ export function createSeed(): DbState {
     cartCoupons: {},
     coupons: FIXTURE_COUPONS,
     wallets: FIXTURE_WALLETS,
+    walletConnections: {},
     quotes: [],
     orders: [],
   })

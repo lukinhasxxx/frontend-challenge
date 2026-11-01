@@ -1,6 +1,7 @@
 import { ws, type WebSocketHandlerConnection } from 'msw'
 import { toSocketIo } from '@mswjs/socket.io-binding'
 import type { RealtimeEvent } from '@/api/contracts'
+import { env } from '@/app/env'
 import { findSessionByToken } from './auth'
 
 /**
@@ -18,7 +19,7 @@ import { findSessionByToken } from './auth'
  * - Se o cliente fecha antes do handshake (ex.: StrictMode), o `close` não
  *   dispara no mock: timers e broadcast checam o readyState.
  */
-const realtime = ws.link(new URL('/', import.meta.env.VITE_SOCKET_URL).href)
+const realtime = ws.link(new URL('/', env.socketUrl).href)
 
 const HEARTBEAT_MS = 20_000
 

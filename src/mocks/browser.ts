@@ -1,6 +1,7 @@
 import { setupWorker } from 'msw/browser'
 import { db } from './db/store'
 import { handlers } from './handlers'
+import { resumeSettlements } from './orders'
 
 export const worker = setupWorker(...handlers)
 
@@ -13,4 +14,5 @@ export async function startMocking() {
       if (new URL(request.url).pathname.startsWith('/api')) print.warning()
     },
   })
+  resumeSettlements()
 }

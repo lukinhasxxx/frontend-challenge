@@ -33,7 +33,7 @@ function QuickActions({ nft }: { nft: Nft }) {
 }
 
 /** Card do catálogo com ações: atalhos no hover (desktop) e coração sobre a imagem (mobile). */
-export function CatalogNftCard({ nft }: { nft: Nft }) {
+export function CatalogNftCard({ nft, priority }: { nft: Nft; priority?: boolean }) {
   return (
     <NftCard
       name={nft.name}
@@ -49,6 +49,7 @@ export function CatalogNftCard({ nft }: { nft: Nft }) {
         />
       }
       overlay={<QuickActions nft={nft} />}
+      priority={priority}
       renderLink={(content, className) => (
         <Link to="/nft/$nftId" params={{ nftId: nft.id }} className={className}>
           {content}

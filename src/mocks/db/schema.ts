@@ -1,7 +1,7 @@
-import type { Nft, Order, Quote, User, Wallet } from '@/api/contracts'
+import type { Nft, Order, Quote, User, Wallet, WalletConnection } from '@/api/contracts'
 
 /** Incrementar ao mudar o formato: força um novo seed em quem tem dados antigos. */
-export const DB_SCHEMA_VERSION = 6
+export const DB_SCHEMA_VERSION = 9
 
 export type DbUser = User & {
   /** SHA-256 de `${salt}:${senha}` — nunca guardamos a senha em claro. */
@@ -38,6 +38,10 @@ export type DbOrder = Order & {
   idempotencyKey: string
   /** Hash do corpo da requisição: mesma chave + corpo diferente = conflito. */
   requestHash: string
+  /** Resultado que a simulação de pagamento vai aplicar (`null` = só pelo painel Mock). */
+  settleAs: 'confirmed' | 'declined' | null
+  /** Quando a simulação liquida o pedido (sobrevive a refresh). */
+  settleAt: string | null
 }
 
 /** Dono de um carrinho: usuário autenticado ou visitante (X-Guest-Id). */
@@ -54,6 +58,8 @@ export type DbState = {
   cartCoupons: Record<CartOwnerKey, string>
   coupons: DbCoupon[]
   wallets: DbWallet[]
+  /** Conexão simulada com a extensão, por usuário (exigida para criar pedido). */
+  walletConnections: Record<string, WalletConnection>
   quotes: DbQuote[]
   orders: DbOrder[]
 }

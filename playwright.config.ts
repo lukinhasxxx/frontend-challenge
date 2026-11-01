@@ -9,6 +9,12 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
+  // Baselines sem sufixo de sistema operacional (o projeto desktop/mobile entra no nome, em visual.spec.ts).
+  // A tolerância de 3% absorve a diferença de renderização de fontes entre Windows, Linux e macOS.
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
+  expect: {
+    toHaveScreenshot: { animations: 'disabled', caret: 'hide', maxDiffPixelRatio: 0.03 },
+  },
   use: {
     baseURL: BASE_URL,
     trace: 'retain-on-failure',

@@ -17,7 +17,7 @@ const navLinkClass =
 export function SiteHeader() {
   const session = useQuery(sessionQueryOptions)
   // Figma: no detalhe do NFT e no carrinho o item ativo do menu é "Mercado".
-  const onMarket = useMatches({ select: (matches) => matches.some((m) => m.routeId === '/nft/$nftId' || m.routeId === '/carrinho') })
+  const onMarket = useMatches({ select: (matches) => matches.some((m) => m.routeId === '/nft/$nftId' || m.routeId === '/carrinho' || m.routeId === '/pagamento' || m.routeId === '/pedidos/$orderId') })
   const cart = useQuery(cartQueryOptions)
   const cartCount = cart.data?.itemCount ?? 0
 
@@ -62,7 +62,11 @@ export function SiteHeader() {
             {session.data ? (
               <Button asChild size="sm" variant="outline" className="h-[35px] max-w-36">
                 <Link to="/perfil">
-                  <UserRound aria-hidden="true" />
+                  {session.data.user.avatarUrl ? (
+                    <img src={session.data.user.avatarUrl} alt="" width={20} height={20} className="size-5 rounded-full object-cover" />
+                  ) : (
+                    <UserRound aria-hidden="true" />
+                  )}
                   <span className="truncate">{session.data.user.name.split(' ')[0]}</span>
                 </Link>
               </Button>

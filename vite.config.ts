@@ -12,6 +12,10 @@ export default defineConfig({
     tailwindcss(),
   ],
   resolve: {
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // MSW sem a cookie store real: o app não usa cookies (ver o arquivo do stub).
+      'tough-cookie': fileURLToPath(new URL('./src/mocks/vendor/tough-cookie.ts', import.meta.url)),
+    },
   },
 })

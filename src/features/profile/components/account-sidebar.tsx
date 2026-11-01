@@ -1,4 +1,5 @@
 import type { ComponentType, SVGProps } from 'react'
+import { Link } from '@tanstack/react-router'
 import { Activity, Download, Heart, LogOut, MapPin, ShoppingCart, TriangleAlert, UserRound } from 'lucide-react'
 import { useSignOut } from '@/features/auth/use-sign-out'
 import { notifyInDevelopment } from '@/lib/in-development'
@@ -6,8 +7,12 @@ import { cn } from '@/lib/utils'
 
 type Item = { label: string; icon: ComponentType<SVGProps<SVGSVGElement>> }
 
-const ITEMS: Item[] = [
-  { label: 'Carteiras', icon: MapPin }, // Fase 6
+const PAGES = [
+  { label: 'Dados do perfil', to: '/perfil', icon: UserRound },
+  { label: 'Carteiras', to: '/perfil/carteiras', icon: MapPin },
+] as const
+
+const OUT_OF_SCOPE: Item[] = [
   { label: 'Atividade', icon: ShoppingCart },
   { label: 'Lista de interesse', icon: Heart },
   { label: 'Ofertas', icon: Activity },
@@ -17,7 +22,7 @@ const ITEMS: Item[] = [
 
 const itemClass = 'flex h-[2.8125rem] w-full items-center gap-3 px-4 text-[0.9375rem] text-accent-foreground'
 
-/** Figma "Account Sidebar" (Perfil do Colecionador): 310px, item ativo com barra de 6px à esquerda. */
+/** Figma "Account Sidebar" (Perfil/Carteiras): 310px, item ativo com barra de 6px à esquerda. */
 export function AccountSidebar() {
   const signOut = useSignOut()
 
@@ -27,13 +32,20 @@ export function AccountSidebar() {
         Meu perfil
       </h2>
       <ul>
-        <li>
-          <span aria-current="page" className={cn(itemClass, 'gap-4 border-l-[6px] border-primary pl-2.5')}>
-            <UserRound className="size-[1.125rem]" aria-hidden="true" />
-            Dados do perfil
-          </span>
-        </li>
-        {ITEMS.map(({ label, icon: Icon }) => (
+        {PAGES.map(({ label, to, icon: Icon }) => (
+          <li key={to}>
+            <Link
+              to={to}
+              activeOptions={{ exact: true }}
+              className={cn(itemClass, 'hover:bg-secondary')}
+              activeProps={{ className: 'gap-4 border-l-[6px] border-primary pl-2.5' }}
+            >
+              <Icon className="size-[1.125rem]" aria-hidden="true" />
+              {label}
+            </Link>
+          </li>
+        ))}
+        {OUT_OF_SCOPE.map(({ label, icon: Icon }) => (
           <li key={label}>
             <button type="button" onClick={() => notifyInDevelopment(label)} className={cn(itemClass, 'cursor-pointer hover:bg-secondary')}>
               <Icon className="size-[1.125rem]" aria-hidden="true" />
