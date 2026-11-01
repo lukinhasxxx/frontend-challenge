@@ -1,6 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { PagePlaceholder } from '@/components/layout/page-placeholder'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
+/** Endereço direto: abre o login sobre a Home (Figma "Desktop / Login"). */
 export const Route = createFileRoute('/login')({
-  component: () => <PagePlaceholder title="Entrar" phase="Fase 4" />,
+  beforeLoad: ({ search }) => {
+    throw redirect({ to: '/', search: { auth: 'login', redirect: search.redirect }, replace: true })
+  },
 })

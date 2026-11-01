@@ -15,6 +15,8 @@ type FieldProps = {
   error?: string
   description?: string
   required?: boolean
+  /** Label só para leitores de tela (campos que no Figma têm apenas placeholder). */
+  hideLabel?: boolean
   className?: string
   /** Recebe os atributos de acessibilidade para repassar ao controle. */
   children: (control: ControlProps) => ReactNode
@@ -24,7 +26,7 @@ type FieldProps = {
  * Campo de formulário acessível: label associado, descrição e erro ligados
  * ao controle por `aria-describedby`, e erro anunciado ao aparecer.
  */
-function Field({ label, error, description, required, className, children }: FieldProps) {
+function Field({ label, error, description, required, hideLabel, className, children }: FieldProps) {
   const id = useId()
   const descriptionId = description ? `${id}-description` : undefined
   const errorId = error ? `${id}-error` : undefined
@@ -32,7 +34,7 @@ function Field({ label, error, description, required, className, children }: Fie
 
   return (
     <div data-slot="field" className={cn("flex flex-col gap-2", className)}>
-      <Label htmlFor={id} className="text-body font-normal text-foreground">
+      <Label htmlFor={id} className={cn("text-body font-normal text-foreground", hideLabel && "sr-only")}>
         {label}
         {required && (
           <span aria-hidden="true" className="text-required">

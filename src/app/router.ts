@@ -20,5 +20,7 @@ declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
     /** Telas com barra de ação própria no mobile (detalhe, carrinho, checkout). */
     hideMobileTabBar?: boolean
+    /** Rota privada (usar com `beforeLoad: requireAuth`): sair dela ao desistir do login. */
+    requiresAuth?: boolean
   }
 }

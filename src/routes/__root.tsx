@@ -1,10 +1,14 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
-import type { QueryClient } from '@tanstack/react-query'
+import { useQuery, type QueryClient } from '@tanstack/react-query'
 import { MobileTabBar } from '@/components/layout/mobile-tab-bar'
 import { NotFound } from '@/components/layout/not-found'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { SiteHeader } from '@/components/layout/site-header'
+import { sessionQueryOptions } from '@/features/auth/api'
+import { AuthDialog } from '@/features/auth/components/auth-dialog'
+import { authSearchSchema } from '@/features/auth/schemas'
+import { adoptSession, useSessionState } from '@/features/auth/session'
 import { RealtimeSync } from '@/realtime/realtime-sync'
 
 type RouterContext = { queryClient: QueryClient }
@@ -12,15 +16,25 @@ type RouterContext = { queryClient: QueryClient }
 const Devtools = import.meta.env.DEV ? lazy(() => import('@/app/devtools')) : () => null
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  validateSearch: authSearchSchema,
   component: RootLayout,
   notFoundComponent: NotFound,
 })
 
 function RootLayout() {
+  const session = useQuery(sessionQueryOptions)
+  const { generation, invalidReason } = useSessionState()
+
   // Sinal para testes E2E: mocks ativos e árvore React montada (render é assíncrono).
   useEffect(() => {
     document.documentElement.dataset.appReady = 'true'
   }, [])
+
+  // Sessão recuperada do storage após refresh.
+  const userId = session.data?.user.id
+  useEffect(() => {
+    if (userId) adoptSession(userId)
+  }, [userId])
 
   return (
     <>
@@ -30,13 +44,18 @@ function RootLayout() {
       >
         Pular para o conteúdo
       </a>
-      <SiteHeader />
-      <main id="conteudo" tabIndex={-1} className="pb-32 outline-none md:pb-0">
-        <Outlet />
-      </main>
-      <SiteFooter />
-      <MobileTabBar />
-      <RealtimeSync />
+      {/* Troca de conta/logout remonta a página: nenhum estado da sessão anterior sobrevive. */}
+      <div key={generation} className="contents">
+        <SiteHeader />
+        <main id="conteudo" tabIndex={-1} className="pb-32 outline-none md:pb-0">
+          <Outlet />
+        </main>
+        <SiteFooter />
+        <MobileTabBar />
+      </div>
+      {/* Socket reabre a cada mudança de sessão (handshake com o token atual ou como visitante). */}
+      <RealtimeSync key={`${generation}:${invalidReason ?? 'ok'}`} />
+      <AuthDialog />
       <Suspense>
         <Devtools />
       </Suspense>

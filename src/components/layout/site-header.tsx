@@ -67,7 +67,8 @@ export function SiteHeader() {
               </Button>
             ) : (
               <Button asChild className="h-[35px] px-2.5">
-                <Link to="/login">
+                {/* Abre o login sobre a tela atual; após entrar, o usuário continua onde estava. */}
+                <Link to="." search={(prev) => ({ ...prev, auth: 'login' })}>
                   <LogIn aria-hidden="true" className="size-5" />
                   Entrar
                 </Link>

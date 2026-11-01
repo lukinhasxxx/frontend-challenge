@@ -106,6 +106,7 @@
   --color-surface-dark: var(--surface-dark);
   --color-surface-neutral: var(--surface-neutral);
   --color-ink-deep: var(--ink-deep);
+  --color-coral: var(--coral);
 
   /* Raios (Figma: 3–5 inputs, 6 botões, 8 cards, 13–17 imagens, 24 destaque) */
   --radius-xs: 0.25rem;
