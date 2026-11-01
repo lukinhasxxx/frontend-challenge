@@ -9,6 +9,9 @@ const SLOW_LATENCY_MS = 2_500
 /** Maior que o timeout do Axios (10 s). */
 const TIMEOUT_DELAY_MS = 12_000
 
+/** Marca a resposta de uma requisição idempotente repetida (mesma chave, mesmo corpo). */
+export const IDEMPOTENT_REPLAY_HEADER = 'Idempotent-Replayed'
+
 const latencyRng = createRng(42)
 let outOfOrderCounter = 0
 
@@ -54,8 +57,10 @@ export function withScenario(resolver: Resolver): Resolver {
       throw thrown
     }
 
-    // A operação aconteceu, mas a resposta chega tarde demais para o cliente.
-    if (scenario === 'timeout') await delay(TIMEOUT_DELAY_MS)
+    // A operação aconteceu, mas a resposta chega tarde demais para o cliente. A repetição
+    // idempotente (pedido já existente) responde na hora: é assim que o cliente se recupera.
+    const replayed = response instanceof Response && response.headers.get(IDEMPOTENT_REPLAY_HEADER) === 'true'
+    if (scenario === 'timeout' && !replayed) await delay(TIMEOUT_DELAY_MS)
     return response
   }
 }

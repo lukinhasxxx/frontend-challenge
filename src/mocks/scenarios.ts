@@ -13,12 +13,13 @@ export const SCENARIOS = {
   'out-of-order': 'Cada requisição responde mais rápido que a anterior: respostas chegam fora de ordem.',
   'error-500': 'Toda chamada /api retorna 500.',
   offline: 'Falha de conexão (erro de rede).',
-  timeout: 'Processa a requisição, mas responde depois do timeout do cliente (10 s).',
+  timeout: 'Processa a requisição, mas responde depois do timeout do cliente (10 s). Repetir um pedido com a mesma chave responde na hora.',
   'expired-session': 'Rotas autenticadas retornam 401 SESSION_EXPIRED.',
   empty: 'Listagens retornam vazias.',
   'price-changed': 'Preços mudam ao revalidar a cotação no checkout.',
   'sold-out': 'Edições esgotam ao revalidar a cotação no checkout.',
   'payment-declined': 'Pagamento é recusado após criação do pedido.',
+  'wallet-rejected': 'A carteira recusa a conexão no pagamento.',
 } as const
 
 export type Scenario = keyof typeof SCENARIOS
